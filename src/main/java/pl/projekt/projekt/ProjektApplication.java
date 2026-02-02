@@ -8,6 +8,7 @@ public class ProjektApplication {
 
 	public static void main(String[] args) {
 		System.out.println("W tej aplikacji możesz zarejestrować pojazd lub zgłosić jego sprzedaż.");
+		System.out.println("Witaj w aplikacji do rejestracji pojazdów.");
 		SpringApplication.run(ProjektApplication.class, args);
 	}
 
