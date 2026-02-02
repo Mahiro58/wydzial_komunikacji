@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class ProjektApplication {
 
 	public static void main(String[] args) {
-		System.out.println("Zmiana gałęzi");
+		System.out.println("Witaj w aplikacji do rejestracji pojazdów.");
 		SpringApplication.run(ProjektApplication.class, args);
 	}
 
