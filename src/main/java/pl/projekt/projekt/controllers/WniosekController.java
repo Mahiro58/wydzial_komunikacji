@@ -54,6 +54,18 @@ public class WniosekController {
         w.setPojazd(p);
         w.setUrzednik(urz);
 
-        return wniosekRepo.save(w);
+        return wniosekRepo.save(w);        
+    }
+
+    // QUERY TEST
+    @GetMapping("/uzytkownik/{id}")
+    public List<WniosekEnt> getByUzytkownik(@PathVariable Long id) {
+        return wniosekRepo.findByUzytkownikId(id);
+    }
+
+    // NativeQuery TEST
+    @GetMapping("/status/zlozony")
+    public List<WniosekEnt> getZlozone() {
+        return wniosekRepo.findZlozoneNative();
     }
 }
