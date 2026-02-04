@@ -4,7 +4,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import pl.projekt.projekt.controllers.dto.WniosekCreateRequest;
 import pl.projekt.projekt.entity.*;
 import pl.projekt.projekt.repo.*;
@@ -19,6 +25,8 @@ import java.util.List;
     description = "Obsługa wniosków: tworzenie oraz odczyt danych i zapytań testowych"
 )
 public class WniosekController {
+
+    private static final Logger log = LogManager.getLogger(WniosekController.class);
 
     private final WniosekRepo wniosekRepo;
     private final UzytkownikRepo uzytkownikRepo;
@@ -41,52 +49,116 @@ public class WniosekController {
     )
     @ApiResponse(responseCode = "200", description = "Lista wniosków została zwrócona poprawnie")
     @GetMapping
-    public List<WniosekEnt> getAll() {
-        return wniosekRepo.findAll();
+    public ResponseEntity<List<WniosekEnt>> getAll() {
+        log.info("GET /wniosek - pobieranie wszystkich wniosków");
+        List<WniosekEnt> res = wniosekRepo.findAll();
+        log.debug("GET /wniosek - liczba rekordów: {}", res.size());
+        return ResponseEntity.ok(res);
     }
 
     @Operation(
         summary = "Utwórz nowy wniosek",
         description = """
             Tworzy nowy wniosek na podstawie danych przesłanych w body.
-            
+
             Wymagane powiązania:
             - uzytkownikId musi wskazywać istniejącego użytkownika
             - pojazdId musi wskazywać istniejący pojazd
             - urzednikId jest opcjonalne (może być null)
+
+            Status jest ustawiany po stronie serwera (domyślnie ZLOZONY).
             """
     )
     @ApiResponse(responseCode = "200", description = "Wniosek został zapisany i zwrócony w odpowiedzi")
+    @ApiResponse(responseCode = "400", description = "Niepoprawne dane wejściowe")
     @ApiResponse(responseCode = "404", description = "Nie znaleziono użytkownika/pojazdu/urzędnika o podanym ID")
+    @ApiResponse(responseCode = "409", description = "Konflikt danych (np. naruszenie integralności bazy)")
     @PostMapping
-    public WniosekEnt create(
+    public ResponseEntity<WniosekEnt> create(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dane potrzebne do utworzenia wniosku",
             required = true
         )
         @RequestBody WniosekCreateRequest req
     ) {
-
-        UzytkownikEnt u = uzytkownikRepo.findById(req.uzytkownikId)
-                .orElseThrow(() -> new RuntimeException("Nie ma uzytkownika id=" + req.uzytkownikId));
-
-        PojazdEnt p = pojazdRepo.findById(req.pojazdId)
-                .orElseThrow(() -> new RuntimeException("Nie ma pojazdu id=" + req.pojazdId));
-
-        UrzednikEnt urz = null;
-        if (req.urzednikId != null) {
-            urz = urzednikRepo.findById(req.urzednikId)
-                    .orElseThrow(() -> new RuntimeException("Nie ma urzednika id=" + req.urzednikId));
+        if (req == null) {
+            log.warn("POST /wniosek - brak body (req == null)");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brak danych wniosku w body");
         }
 
-        WniosekEnt w = new WniosekEnt();
-        w.setTyp(req.typ);
-        w.setOpis(req.opis);
-        w.setUzytkownik(u);
-        w.setPojazd(p);
-        w.setUrzednik(urz);
+        // log wejścia + DEBUG
+        log.info("POST /wniosek - create uzytkownikId={}, pojazdId={}, urzednikId={}",
+                req.uzytkownikId, req.pojazdId, req.urzednikId);
+        log.debug("POST /wniosek - typ={}, opis={}", req.typ, safe(req.opis));
 
-        return wniosekRepo.save(w);
+        // minimalna walidacja
+        if (req.uzytkownikId == null || req.pojazdId == null || req.typ == null) {
+            log.warn("POST /wniosek - brakuje wymaganych pól (uzytkownikId/pojazdId/typ)");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Pola uzytkownikId, pojazdId oraz typ są wymagane"
+            );
+        }
+
+        try {
+            // 1) użytkownik
+            log.debug("POST /wniosek - pobieram użytkownika id={}", req.uzytkownikId);
+            UzytkownikEnt u = uzytkownikRepo.findById(req.uzytkownikId)
+                    .orElseThrow(() -> {
+                        log.warn("POST /wniosek - nie znaleziono użytkownika id={}", req.uzytkownikId);
+                        return new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie ma użytkownika id=" + req.uzytkownikId);
+                    });
+
+            // 2) pojazd
+            log.debug("POST /wniosek - pobieram pojazd id={}", req.pojazdId);
+            PojazdEnt p = pojazdRepo.findById(req.pojazdId)
+                    .orElseThrow(() -> {
+                        log.warn("POST /wniosek - nie znaleziono pojazdu id={}", req.pojazdId);
+                        return new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie ma pojazdu id=" + req.pojazdId);
+                    });
+
+            // 3) urzędnik
+            UrzednikEnt urz = null;
+            if (req.urzednikId != null) {
+                log.debug("POST /wniosek - pobieram urzędnika id={}", req.urzednikId);
+                urz = urzednikRepo.findById(req.urzednikId)
+                        .orElseThrow(() -> {
+                            log.warn("POST /wniosek - nie znaleziono urzędnika id={}", req.urzednikId);
+                            return new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie ma urzędnika id=" + req.urzednikId);
+                        });
+            } else {
+                log.warn("POST /wniosek - brak urzednikId (wniosek bez przypisanego urzędnika)");
+            }
+
+            // 4) budowa encji i zapis
+            WniosekEnt w = new WniosekEnt();
+            w.setTyp(req.typ);
+            w.setOpis(req.opis);
+            w.setUzytkownik(u);
+            w.setPojazd(p);
+            w.setUrzednik(urz);
+
+            WniosekEnt saved = wniosekRepo.save(w);
+
+            log.info("POST /wniosek - zapisano wniosek id={}, status={}, dataZlozenia={}",
+                    saved.getId(), saved.getStatus(), saved.getDataZlozenia());
+
+            return ResponseEntity.ok(saved);
+
+        } catch (DataIntegrityViolationException e) {
+            log.error("POST /wniosek - naruszenie integralności danych: {}", e.getMessage(), e);
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Nie można zapisać wniosku: konflikt danych lub naruszenie ograniczeń bazy.",
+                    e
+            );
+        } catch (ResponseStatusException e) {
+            log.warn("POST /wniosek - błąd klienta: {} {}", e.getStatusCode(), e.getReason());
+            throw e;
+        } catch (Exception e) {
+            log.error("POST /wniosek - nieoczekiwany błąd: {}", e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Błąd serwera podczas tworzenia wniosku", e);
+        }
     }
 
     @Operation(
@@ -95,11 +167,20 @@ public class WniosekController {
     )
     @ApiResponse(responseCode = "200", description = "Lista wniosków użytkownika została zwrócona poprawnie")
     @GetMapping("/uzytkownik/{id}")
-    public List<WniosekEnt> getByUzytkownik(
+    public ResponseEntity<List<WniosekEnt>> getByUzytkownik(
         @Parameter(description = "Id użytkownika", required = true, example = "1")
         @PathVariable Long id
     ) {
-        return wniosekRepo.findByUzytkownikId(id);
+        log.info("GET /wniosek/uzytkownik/{} - pobieranie wniosków użytkownika", id);
+        List<WniosekEnt> res = wniosekRepo.findByUzytkownikId(id);
+
+        if (res.isEmpty()) {
+            log.warn("GET /wniosek/uzytkownik/{} - brak wniosków dla użytkownika", id);
+        } else {
+            log.debug("GET /wniosek/uzytkownik/{} - liczba wniosków: {}", id, res.size());
+        }
+
+        return ResponseEntity.ok(res);
     }
 
     @Operation(
@@ -108,7 +189,15 @@ public class WniosekController {
     )
     @ApiResponse(responseCode = "200", description = "Lista wniosków została zwrócona poprawnie")
     @GetMapping("/status/zlozony")
-    public List<WniosekEnt> getZlozone() {
-        return wniosekRepo.findZlozoneNative();
+    public ResponseEntity<List<WniosekEnt>> getZlozone() {
+        log.info("GET /wniosek/status/zlozony - pobieranie wniosków o statusie ZLOZONY (native query)");
+        List<WniosekEnt> res = wniosekRepo.findZlozoneNative();
+        log.debug("GET /wniosek/status/zlozony - liczba rekordów: {}", res.size());
+        return ResponseEntity.ok(res);
+    }
+
+    private static String safe(String s) {
+        if (s == null) return null;
+        return s.length() > 200 ? s.substring(0, 200) + "..." : s;
     }
 }

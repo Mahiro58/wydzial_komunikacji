@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration monitorInterval="60">
+  <Properties>
+    <Property name="baseDir">./logi</Property>
+    <Property name="service">projekt</Property>
+  </Properties>
+
+  <Appenders>
+
+    <!-- LOGI NA KONSOLĘ -->
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="LOG4J2 %d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%t] %c{1} - %msg%n%throwable"/>
+    </Console>
+
+    <!-- LOGI DO PLIKU + ROTACJA -->
+    <RollingFile name="RollingFile"
+                 fileName="${baseDir}/${service}.log"
+                 filePattern="${baseDir}/%d{yyyy-MM}/${service}_%d{yyyy-MM-dd}_%i.log.gz">
+      <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%t] %c{1}:%L - %msg%n%throwable"/>
+      <Policies>
+        <OnStartupTriggeringPolicy/>
+        <SizeBasedTriggeringPolicy size="10 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="10"/>
+    </RollingFile>
+
+  </Appenders>
+
+  <Loggers>
+
+    <!-- DUŻO LOGÓW DLA KODU -->
+    <Logger name="pl.projekt" level="DEBUG" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="RollingFile"/>
+    </Logger>
+
+    <!-- RESZTA -->
+    <Root level="INFO">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="RollingFile"/>
+    </Root>
+
+  </Loggers>
+</Configuration>
