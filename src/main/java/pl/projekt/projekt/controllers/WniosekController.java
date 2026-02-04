@@ -1,5 +1,9 @@
 package pl.projekt.projekt.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 import pl.projekt.projekt.controllers.dto.WniosekCreateRequest;
 import pl.projekt.projekt.entity.*;
@@ -10,6 +14,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/wniosek")
 @CrossOrigin
+@Tag(
+    name = "Wnioski",
+    description = "Obsługa wniosków: tworzenie oraz odczyt danych i zapytań testowych"
+)
 public class WniosekController {
 
     private final WniosekRepo wniosekRepo;
@@ -27,13 +35,37 @@ public class WniosekController {
         this.urzednikRepo = urzednikRepo;
     }
 
+    @Operation(
+        summary = "Pobierz wszystkie wnioski",
+        description = "Zwraca listę wszystkich wniosków zapisanych w bazie danych."
+    )
+    @ApiResponse(responseCode = "200", description = "Lista wniosków została zwrócona poprawnie")
     @GetMapping
     public List<WniosekEnt> getAll() {
         return wniosekRepo.findAll();
     }
 
+    @Operation(
+        summary = "Utwórz nowy wniosek",
+        description = """
+            Tworzy nowy wniosek na podstawie danych przesłanych w body.
+            
+            Wymagane powiązania:
+            - uzytkownikId musi wskazywać istniejącego użytkownika
+            - pojazdId musi wskazywać istniejący pojazd
+            - urzednikId jest opcjonalne (może być null)
+            """
+    )
+    @ApiResponse(responseCode = "200", description = "Wniosek został zapisany i zwrócony w odpowiedzi")
+    @ApiResponse(responseCode = "404", description = "Nie znaleziono użytkownika/pojazdu/urzędnika o podanym ID")
     @PostMapping
-    public WniosekEnt create(@RequestBody WniosekCreateRequest req) {
+    public WniosekEnt create(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dane potrzebne do utworzenia wniosku",
+            required = true
+        )
+        @RequestBody WniosekCreateRequest req
+    ) {
 
         UzytkownikEnt u = uzytkownikRepo.findById(req.uzytkownikId)
                 .orElseThrow(() -> new RuntimeException("Nie ma uzytkownika id=" + req.uzytkownikId));
@@ -54,16 +86,27 @@ public class WniosekController {
         w.setPojazd(p);
         w.setUrzednik(urz);
 
-        return wniosekRepo.save(w);        
+        return wniosekRepo.save(w);
     }
 
-    // QUERY TEST
+    @Operation(
+        summary = "Pobierz wnioski użytkownika",
+        description = "Zwraca listę wniosków powiązanych z użytkownikiem o podanym ID (zapytanie po relacji)."
+    )
+    @ApiResponse(responseCode = "200", description = "Lista wniosków użytkownika została zwrócona poprawnie")
     @GetMapping("/uzytkownik/{id}")
-    public List<WniosekEnt> getByUzytkownik(@PathVariable Long id) {
+    public List<WniosekEnt> getByUzytkownik(
+        @Parameter(description = "Id użytkownika", required = true, example = "1")
+        @PathVariable Long id
+    ) {
         return wniosekRepo.findByUzytkownikId(id);
     }
 
-    // NativeQuery TEST
+    @Operation(
+        summary = "Pobierz wnioski o statusie 'złożony'",
+        description = "Zwraca listę wniosków o statusie 'złożony' z wykorzystaniem native query."
+    )
+    @ApiResponse(responseCode = "200", description = "Lista wniosków została zwrócona poprawnie")
     @GetMapping("/status/zlozony")
     public List<WniosekEnt> getZlozone() {
         return wniosekRepo.findZlozoneNative();
