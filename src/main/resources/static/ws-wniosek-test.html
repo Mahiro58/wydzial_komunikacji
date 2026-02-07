@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8"/>
+  <title>WS – test wniosku</title>
+</head>
+<body>
+<h2>WebSocket test – Wniosek status</h2>
+
+<button onclick="connect()">Połącz</button>
+<button onclick="disconnect()">Rozłącz</button>
+
+<pre id="log"></pre>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+<script>
+  let stompClient = null;
+
+  function log(msg) {
+    document.getElementById('log').textContent += msg + "\n";
+  }
+
+  function connect() {
+    const socket = new SockJS('/my-websocket');
+    stompClient = Stomp.over(socket);
+    stompClient.connect({}, function(frame) {
+      log("Połączono: " + frame);
+      stompClient.subscribe('/topic/wniosek/events', function(message) {
+        log("EVENT: " + message.body);
+      });
+      log("Subskrypcja: /topic/wniosek/events");
+    }, function(err) {
+      log("Błąd: " + err);
+    });
+  }
+
+  function disconnect() {
+    if (stompClient) stompClient.disconnect();
+    log("Rozłączono");
+  }
+</script>
+</body>
+</html>

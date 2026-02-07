@@ -9,11 +9,13 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import pl.projekt.projekt.controllers.dto.WniosekCreateRequest;
 import pl.projekt.projekt.entity.*;
 import pl.projekt.projekt.repo.*;
+import pl.projekt.projekt.ws.WniosekStatusEvent;
 
 import java.util.List;
 
@@ -21,8 +23,8 @@ import java.util.List;
 @RequestMapping("/wniosek")
 @CrossOrigin
 @Tag(
-    name = "Wnioski",
-    description = "Obsługa wniosków: tworzenie oraz odczyt danych i zapytań testowych"
+        name = "Wnioski",
+        description = "Obsługa wniosków: tworzenie oraz odczyt danych i zapytań testowych"
 )
 public class WniosekController {
 
@@ -33,19 +35,24 @@ public class WniosekController {
     private final PojazdRepo pojazdRepo;
     private final UrzednikRepo urzednikRepo;
 
+    // WebSocket publisher
+    private final SimpMessagingTemplate ws;
+
     public WniosekController(WniosekRepo wniosekRepo,
                              UzytkownikRepo uzytkownikRepo,
                              PojazdRepo pojazdRepo,
-                             UrzednikRepo urzednikRepo) {
+                             UrzednikRepo urzednikRepo,
+                             SimpMessagingTemplate ws) {
         this.wniosekRepo = wniosekRepo;
         this.uzytkownikRepo = uzytkownikRepo;
         this.pojazdRepo = pojazdRepo;
         this.urzednikRepo = urzednikRepo;
+        this.ws = ws;
     }
 
     @Operation(
-        summary = "Pobierz wszystkie wnioski",
-        description = "Zwraca listę wszystkich wniosków zapisanych w bazie danych."
+            summary = "Pobierz wszystkie wnioski",
+            description = "Zwraca listę wszystkich wniosków zapisanych w bazie danych."
     )
     @ApiResponse(responseCode = "200", description = "Lista wniosków została zwrócona poprawnie")
     @GetMapping
@@ -57,17 +64,17 @@ public class WniosekController {
     }
 
     @Operation(
-        summary = "Utwórz nowy wniosek",
-        description = """
-            Tworzy nowy wniosek na podstawie danych przesłanych w body.
+            summary = "Utwórz nowy wniosek",
+            description = """
+                Tworzy nowy wniosek na podstawie danych przesłanych w body.
 
-            Wymagane powiązania:
-            - uzytkownikId musi wskazywać istniejącego użytkownika
-            - pojazdId musi wskazywać istniejący pojazd
-            - urzednikId jest opcjonalne (może być null)
+                Wymagane powiązania:
+                - uzytkownikId musi wskazywać istniejącego użytkownika
+                - pojazdId musi wskazywać istniejący pojazd
+                - urzednikId jest opcjonalne (może być null)
 
-            Status jest ustawiany po stronie serwera (domyślnie ZLOZONY).
-            """
+                Status jest ustawiany po stronie serwera (domyślnie ZLOZONY).
+                """
     )
     @ApiResponse(responseCode = "200", description = "Wniosek został zapisany i zwrócony w odpowiedzi")
     @ApiResponse(responseCode = "400", description = "Niepoprawne dane wejściowe")
@@ -75,11 +82,11 @@ public class WniosekController {
     @ApiResponse(responseCode = "409", description = "Konflikt danych (np. naruszenie integralności bazy)")
     @PostMapping
     public ResponseEntity<WniosekEnt> create(
-        @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Dane potrzebne do utworzenia wniosku",
-            required = true
-        )
-        @RequestBody WniosekCreateRequest req
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Dane potrzebne do utworzenia wniosku",
+                    required = true
+            )
+            @RequestBody WniosekCreateRequest req
     ) {
         if (req == null) {
             log.warn("POST /wniosek - brak body (req == null)");
@@ -162,14 +169,72 @@ public class WniosekController {
     }
 
     @Operation(
-        summary = "Pobierz wnioski użytkownika",
-        description = "Zwraca listę wniosków powiązanych z użytkownikiem o podanym ID (zapytanie po relacji)."
+            summary = "Zmień status wniosku",
+            description = "Zmienia status wniosku i publikuje event na WebSocket (/topic/wniosek/events)."
+    )
+    @ApiResponse(responseCode = "200", description = "Status zmieniony")
+    @ApiResponse(responseCode = "400", description = "Niepoprawny status")
+    @ApiResponse(responseCode = "404", description = "Nie znaleziono wniosku")
+    @ApiResponse(responseCode = "409", description = "Konflikt danych")
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<WniosekEnt> changeStatus(
+            @Parameter(description = "Id wniosku", required = true, example = "1")
+            @PathVariable Long id,
+            @Parameter(description = "Nowy status (np. W_TRAKCIE, DO_POPRAWY, ZATWIERDZONY, ODRZUCONY)", required = true)
+            @RequestParam("status") String status
+    ) {
+        log.info("PATCH /wniosek/{}/status - status={}", id, status);
+
+        WniosekEnt w = wniosekRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie ma wniosku id=" + id));
+
+        StatusWniosku newStatus;
+        try {
+            newStatus = StatusWniosku.valueOf(status);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Niepoprawny status: " + status);
+        }
+
+        StatusWniosku oldStatus = w.getStatus();
+        if (oldStatus == newStatus) {
+            log.info("PATCH /wniosek/{}/status - status bez zmian ({}), pomijam event", id, newStatus);
+            return ResponseEntity.ok(w);
+        }
+
+        w.setStatus(newStatus);
+
+        try {
+            WniosekEnt saved = wniosekRepo.save(w);
+            log.info("Zmieniono status wniosku id={} z {} na {}", id, oldStatus, newStatus);
+
+            // publikacja eventu po realnym zapisie
+            ws.convertAndSend("/topic/wniosek/events", new WniosekStatusEvent(id, oldStatus, newStatus));
+            log.info("Wysłano WS event na /topic/wniosek/events dla wniosku id={}", id);
+
+            return ResponseEntity.ok(saved);
+
+        } catch (DataIntegrityViolationException e) {
+            log.error("PATCH /wniosek/{}/status - naruszenie integralności danych: {}", id, e.getMessage(), e);
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Nie można zmienić statusu wniosku: konflikt danych lub naruszenie ograniczeń bazy.",
+                    e
+            );
+        } catch (Exception e) {
+            log.error("PATCH /wniosek/{}/status - nieoczekiwany błąd: {}", id, e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Błąd serwera podczas zmiany statusu", e);
+        }
+    }
+
+    @Operation(
+            summary = "Pobierz wnioski użytkownika",
+            description = "Zwraca listę wniosków powiązanych z użytkownikiem o podanym ID (zapytanie po relacji)."
     )
     @ApiResponse(responseCode = "200", description = "Lista wniosków użytkownika została zwrócona poprawnie")
     @GetMapping("/uzytkownik/{id}")
     public ResponseEntity<List<WniosekEnt>> getByUzytkownik(
-        @Parameter(description = "Id użytkownika", required = true, example = "1")
-        @PathVariable Long id
+            @Parameter(description = "Id użytkownika", required = true, example = "1")
+            @PathVariable Long id
     ) {
         log.info("GET /wniosek/uzytkownik/{} - pobieranie wniosków użytkownika", id);
         List<WniosekEnt> res = wniosekRepo.findByUzytkownikId(id);
@@ -184,8 +249,8 @@ public class WniosekController {
     }
 
     @Operation(
-        summary = "Pobierz wnioski o statusie 'złożony'",
-        description = "Zwraca listę wniosków o statusie 'złożony' z wykorzystaniem native query."
+            summary = "Pobierz wnioski o statusie 'złożony'",
+            description = "Zwraca listę wniosków o statusie 'złożony' z wykorzystaniem native query."
     )
     @ApiResponse(responseCode = "200", description = "Lista wniosków została zwrócona poprawnie")
     @GetMapping("/status/zlozony")
