@@ -14,7 +14,6 @@ import org.springframework.web.server.ResponseStatusException;
 import pl.projekt.projekt.entity.PojazdEnt;
 import pl.projekt.projekt.repo.PojazdRepo;
 
-// ⬇️ ten import dopasuj do Twojej klasy-klienta WebClient
 import pl.projekt.projekt.external.VpicClient;
 import pl.projekt.projekt.external.dto.VpicDecodeResponse;
 
@@ -73,7 +72,6 @@ public class PojazdController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brak danych pojazdu w body");
         }
 
-        // Szybszy i czytelny konflikt VIN zanim dojdziemy do bazy
         if (pojazd.getVin() == null || pojazd.getVin().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "VIN jest wymagany");
         }
