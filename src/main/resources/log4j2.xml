@@ -9,7 +9,7 @@
 
     <!-- LOGI NA KONSOLĘ -->
     <Console name="Console" target="SYSTEM_OUT">
-      <PatternLayout pattern="LOG4J2 %d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%t] %c{1} - %msg%n%throwable"/>
+      <PatternLayout pattern="LOG4J2 %-5level [%t] %c{1} - %msg%n%throwable"/>
     </Console>
 
     <!-- LOGI DO PLIKU + ROTACJA -->
