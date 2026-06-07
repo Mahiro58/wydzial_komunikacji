@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import pl.projekt.projekt.entity.UzytkownikEnt;
 import pl.projekt.projekt.repo.UzytkownikRepo;
+import pl.projekt.projekt.controllers.dto.AktualizacjaKontaktuRequest;
 
 import java.util.List;
 
@@ -45,6 +46,40 @@ public class UzytkownikController {
         List<UzytkownikEnt> res = repo.findAll();
         log.debug("GET /uzytkownik - liczba rekordów: {}", res.size());
         return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UzytkownikEnt> getById(@PathVariable Long id) {
+        UzytkownikEnt user = repo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Nie znaleziono użytkownika o id=" + id
+                ));
+
+        return ResponseEntity.ok(user);
+    }
+
+    @PutMapping("/{id}/kontakt")
+    public ResponseEntity<UzytkownikEnt> updateContact(
+            @PathVariable Long id,
+            @RequestBody AktualizacjaKontaktuRequest request
+    ) {
+        UzytkownikEnt user = repo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Nie znaleziono użytkownika o id=" + id
+                ));
+
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email jest wymagany");
+        }
+
+        user.setEmail(request.getEmail());
+        user.setTelefon(request.getTelefon());
+
+        UzytkownikEnt saved = repo.save(user);
+
+        return ResponseEntity.ok(saved);
     }
 
     // POST /uzytkownik

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Logowanie</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            margin-top: 80px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 350px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+        }
+
+        input {
+            border: 1px solid #ccc;
+        }
+
+        button {
+            border: none;
+            background: #0078ff;
+            color: white;
+            cursor: pointer;
+        }
+
+        h2, p {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Logowanie</h2>
+
+    <input id="email" placeholder="Email">
+    <input id="haslo" type="password" placeholder="Hasło">
+
+    <button onclick="login()">Zaloguj</button>
+
+    <p id="msg"></p>
+</div>
+
+<script>
+    async function login() {
+        const data = {
+            email: document.getElementById("email").value,
+            haslo: document.getElementById("haslo").value
+        };
+
+        const response = await fetch("/auth/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            document.getElementById("msg").innerText = "Błędny email lub hasło";
+            return;
+        }
+
+        const user = await response.json();
+
+        localStorage.setItem("userId", user.id);
+        localStorage.setItem("email", user.email);
+        localStorage.setItem("rola", user.rola);
+
+        document.getElementById("msg").innerText = user.komunikat;
+
+        if (user.rola === "USER") {
+            window.location.href = "/user-panel.html";
+        } else {
+            window.location.href = "/admin-panel.html";
+        }
+    }
+</script>
+
+</body>
+</html>

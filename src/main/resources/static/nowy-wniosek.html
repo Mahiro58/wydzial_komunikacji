@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Nowy wniosek</title>
+</head>
+<body>
+
+<h1>Złóż nowy wniosek</h1>
+
+<form onsubmit="zlozWniosek(event)">
+    <label>ID pojazdu:</label><br>
+    <input id="pojazdId" type="number" required><br><br>
+
+    <label>Typ wniosku:</label><br>
+    <select id="typ" required>
+        <option value="REJESTRACJA">Rejestracja pojazdu</option>
+        <option value="CZASOWA">Czasowa rejestracja</option>
+        <option value="WYREJESTROWANIE">Wyrejestrowanie pojazdu</option>
+        <option value="ZBYCIE_NABYCIE">Zgłoszenie zbycia/nabycia pojazdu</option>
+    </select><br><br>
+
+    <label>Opis:</label><br>
+    <textarea id="opis" rows="5" cols="40"></textarea><br><br>
+
+    <button type="submit">Wyślij wniosek</button>
+</form>
+
+<p id="msg"></p>
+
+<br>
+<a href="/user-panel.html">Powrót do panelu</a>
+
+<script>
+    const userId = localStorage.getItem("userId");
+
+    if (!userId) {
+        window.location.href = "/login.html";
+    }
+
+    async function zlozWniosek(event) {
+        event.preventDefault();
+
+        const data = {
+            uzytkownikId: Number(userId),
+            pojazdId: Number(document.getElementById("pojazdId").value),
+            typ: document.getElementById("typ").value,
+            opis: document.getElementById("opis").value,
+            urzednikId: null
+        };
+
+        const response = await fetch("/wniosek", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            const saved = await response.json();
+            document.getElementById("msg").innerText =
+                "Wniosek złożony. ID: " + saved.id + ", status: " + saved.status;
+        } else {
+            const error = await response.text();
+            document.getElementById("msg").innerText =
+                "Błąd składania wniosku: " + error;
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Rejestracja</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            margin-top: 60px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 350px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: #0078ff;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        p {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Rejestracja</h2>
+
+    <input id="imie" placeholder="Imię">
+    <input id="nazwisko" placeholder="Nazwisko">
+    <input id="email" placeholder="Email">
+    <input id="telefon" placeholder="Telefon">
+    <input id="haslo" type="password" placeholder="Hasło">
+
+    <button onclick="register()">Zarejestruj</button>
+
+    <p id="msg"></p>
+</div>
+
+<script>
+    async function register() {
+
+        const data = {
+            imie: document.getElementById("imie").value,
+            nazwisko: document.getElementById("nazwisko").value,
+            email: document.getElementById("email").value,
+            telefon: document.getElementById("telefon").value,
+            haslo: document.getElementById("haslo").value
+        };
+
+        const response = await fetch("/auth/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        const text = await response.text();
+
+        document.getElementById("msg").innerText = text;
+    }
+</script>
+
+</body>
+</html>

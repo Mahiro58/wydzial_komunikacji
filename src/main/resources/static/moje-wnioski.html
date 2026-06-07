@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Moje wnioski</title>
+</head>
+<body>
+
+<h1>Moje wnioski</h1>
+
+<button onclick="pobierzWnioski()">Odśwież</button>
+
+<table border="1" cellpadding="8">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Typ</th>
+        <th>Status</th>
+        <th>Data złożenia</th>
+        <th>Opis</th>
+    </tr>
+    </thead>
+    <tbody id="tabela"></tbody>
+</table>
+
+<br>
+<a href="/user-panel.html">Powrót do panelu</a>
+
+<script>
+    const userId = localStorage.getItem("userId");
+
+    if (!userId) {
+        window.location.href = "/login.html";
+    }
+
+    async function pobierzWnioski() {
+        const response = await fetch("/wniosek/uzytkownik/" + userId);
+
+        if (!response.ok) {
+            alert("Nie udało się pobrać wniosków");
+            return;
+        }
+
+        const wnioski = await response.json();
+        const tabela = document.getElementById("tabela");
+
+        tabela.innerHTML = "";
+
+        wnioski.forEach(w => {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td>${w.id}</td>
+                <td>${w.typ}</td>
+                <td>${w.status}</td>
+                <td>${w.dataZlozenia}</td>
+                <td>${w.opis ?? ""}</td>
+            `;
+
+            tabela.appendChild(row);
+        });
+    }
+
+    pobierzWnioski();
+</script>
+
+</body>
+</html>
