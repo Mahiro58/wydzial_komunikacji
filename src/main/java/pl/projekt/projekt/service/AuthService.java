@@ -8,6 +8,7 @@ import pl.projekt.projekt.controllers.dto.RegisterRequest;
 import pl.projekt.projekt.entity.Rola;
 import pl.projekt.projekt.entity.UzytkownikEnt;
 import pl.projekt.projekt.repo.UzytkownikRepo;
+import pl.projekt.projekt.controllers.dto.AuthResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -42,21 +43,26 @@ public class AuthService {
         return "Rejestracja udana";
     }
 
-    public String login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request) {
 
-        UzytkownikEnt user = repo.findByEmail(request.getEmail())
-                .orElseThrow(() ->
-                        new RuntimeException("Nie znaleziono użytkownika"));
+    UzytkownikEnt user = repo.findByEmail(request.getEmail())
+            .orElseThrow(() ->
+                    new RuntimeException("Nie znaleziono użytkownika"));
 
-        boolean matches = passwordEncoder.matches(
-                request.getHaslo(),
-                user.getHaslo()
-        );
+    boolean matches = passwordEncoder.matches(
+            request.getHaslo(),
+            user.getHaslo()
+    );
 
-        if (!matches) {
-            throw new RuntimeException("Błędne hasło");
-        }
-
-        return "Zalogowano pomyślnie";
+    if (!matches) {
+        throw new RuntimeException("Błędne hasło");
     }
+
+    return new AuthResponse(
+            user.getId(),
+            user.getEmail(),
+            user.getRola().name(),
+            "Zalogowano pomyślnie"
+    );
+}
 }
