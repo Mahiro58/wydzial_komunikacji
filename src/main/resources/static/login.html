@@ -88,7 +88,13 @@
 
         if (user.rola === "USER") {
             window.location.href = "/user-panel.html";
-        } else {
+        }
+
+        if (user.rola === "URZEDNIK") {
+            window.location.href = "/urzednik-panel.html";
+        }
+
+        if (user.rola === "ADMIN") {
             window.location.href = "/admin-panel.html";
         }
     }

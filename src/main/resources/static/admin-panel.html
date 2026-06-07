@@ -2,93 +2,53 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Panel urzędnika</title>
+    <title>Panel administratora</title>
 </head>
 <body>
 
-<h1>Panel urzędnika</h1>
+<h1>Panel administratora systemu</h1>
 
-<button onclick="pobierzWnioski()">
-    Odśwież listę
+<p>Zalogowany jako: <strong id="email"></strong></p>
+
+<hr>
+
+<h2>Zarządzanie systemem</h2>
+
+<button onclick="location.href='/zarzadzanie-uzytkownikami.html'">
+    Zarządzanie użytkownikami i rolami
 </button>
 
-<table border="1" cellpadding="8">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Typ</th>
-        <th>Status</th>
-        <th>Użytkownik</th>
-        <th>Pojazd</th>
-        <th>Akcja</th>
-    </tr>
-    </thead>
+<button onclick="location.href='/urzednik-panel.html'">
+    Panel urzędnika
+</button>
 
-    <tbody id="tabela"></tbody>
-</table>
+<button onclick="location.href='/platnosci-admin.html'">
+    Nadzór płatności
+</button>
+
+<button onclick="location.href='/bezpieczenstwo.html'">
+    Bezpieczeństwo systemu
+</button>
+
+<hr>
+
+<button onclick="logout()">Wyloguj</button>
 
 <script>
-    async function pobierzWnioski() {
+    const rola = localStorage.getItem("rola");
+    const email = localStorage.getItem("email");
 
-        const response = await fetch("/wniosek");
-
-        const wnioski = await response.json();
-
-        const tabela = document.getElementById("tabela");
-
-        tabela.innerHTML = "";
-
-        wnioski.forEach(w => {
-
-            const row = document.createElement("tr");
-
-            row.innerHTML = `
-                <td>${w.id}</td>
-                <td>${w.typ}</td>
-                <td>${w.status}</td>
-                <td>${w.uzytkownik?.email ?? "-"}</td>
-                <td>${w.pojazd?.marka ?? "-"} ${w.pojazd?.model ?? ""}</td>
-
-                <td>
-                    <select id="status-${w.id}">
-                        <option value="ZLOZONY">ZŁOŻONY</option>
-                        <option value="W_TRAKCIE">W TRAKCIE</option>
-                        <option value="DO_POPRAWY">DO POPRAWY</option>
-                        <option value="ZATWIERDZONY">ZATWIERDZONY</option>
-                        <option value="ODRZUCONY">ODRZUCONY</option>
-                    </select>
-
-                    <button onclick="zmienStatus(${w.id})">
-                        Zapisz
-                    </button>
-                </td>
-            `;
-
-            tabela.appendChild(row);
-        });
+    if (rola !== "ADMIN") {
+        alert("Brak dostępu do panelu administratora");
+        window.location.href = "/index.html";
     }
 
-    async function zmienStatus(id) {
+    document.getElementById("email").innerText = email ?? "";
 
-        const status =
-            document.getElementById(`status-${id}`).value;
-
-        const response = await fetch(
-            `/wniosek/${id}/status?status=${status}`,
-            {
-                method: "PATCH"
-            }
-        );
-
-        if (response.ok) {
-            alert("Status zmieniony");
-            pobierzWnioski();
-        } else {
-            alert("Błąd zmiany statusu");
-        }
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/login.html";
     }
-
-    pobierzWnioski();
 </script>
 
 </body>
