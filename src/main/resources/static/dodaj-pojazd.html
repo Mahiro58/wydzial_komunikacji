@@ -40,13 +40,16 @@
     async function dodajPojazd(event) {
         event.preventDefault();
 
-        const data = {
-            marka: document.getElementById("marka").value,
-            model: document.getElementById("model").value,
-            rok: document.getElementById("rok").value,
-            vin: document.getElementById("vin").value,
-            numerRejestracyjny: document.getElementById("numerRejestracyjny").value
-        };
+        const userId = localStorage.getItem("userId");
+
+    const data = {
+        marka: document.getElementById("marka").value,
+        model: document.getElementById("model").value,
+        rok: document.getElementById("rok").value,
+        vin: document.getElementById("vin").value,
+        numerRejestracyjny: document.getElementById("numerRejestracyjny").value,
+        uzytkownikId: Number(userId)
+    };
 
         const response = await fetch("/pojazd", {
             method: "POST",

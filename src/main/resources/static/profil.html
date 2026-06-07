@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Profil użytkownika</title>
+</head>
+<body>
+
+<h1>Profil użytkownika</h1>
+
+<form onsubmit="zapisz(event)">
+
+    <label>Imię:</label><br>
+    <input id="imie" disabled><br><br>
+
+    <label>Nazwisko:</label><br>
+    <input id="nazwisko" disabled><br><br>
+
+    <label>Email:</label><br>
+    <input id="email" type="email" required><br><br>
+
+    <label>Telefon:</label><br>
+    <input id="telefon"><br><br>
+
+    <button type="submit">
+        Zapisz zmiany
+    </button>
+
+</form>
+
+<p id="msg"></p>
+
+<br>
+
+<a href="/user-panel.html">
+    Powrót do panelu
+</a>
+
+<script>
+
+    const userId =
+        localStorage.getItem("userId");
+
+    if (!userId) {
+        window.location.href =
+            "/login.html";
+    }
+
+    async function pobierzProfil() {
+
+        const response =
+            await fetch("/uzytkownik/" + userId);
+
+        const user =
+            await response.json();
+
+        document.getElementById("imie").value =
+            user.imie ?? "";
+
+        document.getElementById("nazwisko").value =
+            user.nazwisko ?? "";
+
+        document.getElementById("email").value =
+            user.email ?? "";
+
+        document.getElementById("telefon").value =
+            user.telefon ?? "";
+    }
+
+    async function zapisz(event) {
+
+        event.preventDefault();
+
+        const data = {
+            email:
+                document.getElementById("email").value,
+
+            telefon:
+                document.getElementById("telefon").value
+        };
+
+        const response =
+            await fetch(
+                "/uzytkownik/" + userId + "/kontakt",
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify(data)
+                }
+            );
+
+        if (response.ok) {
+            document.getElementById("msg")
+                .innerText =
+                "Profil zapisany";
+        } else {
+            document.getElementById("msg")
+                .innerText =
+                "Błąd zapisu";
+        }
+    }
+
+    pobierzProfil();
+
+</script>
+
+</body>
+</html>

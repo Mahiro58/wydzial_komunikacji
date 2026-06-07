@@ -65,10 +65,7 @@ public class UzytkownikController {
             @RequestBody AktualizacjaKontaktuRequest request
     ) {
         UzytkownikEnt user = repo.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Nie znaleziono użytkownika o id=" + id
-                ));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie znaleziono użytkownika o id=" + id));
 
         if (request.getEmail() == null || request.getEmail().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email jest wymagany");

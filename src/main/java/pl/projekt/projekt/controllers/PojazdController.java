@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import pl.projekt.projekt.entity.PojazdEnt;
 import pl.projekt.projekt.repo.PojazdRepo;
+import pl.projekt.projekt.controllers.dto.PojazdCreateRequest;
+import pl.projekt.projekt.entity.UzytkownikEnt;
+import pl.projekt.projekt.repo.UzytkownikRepo;
 
 import pl.projekt.projekt.external.VpicClient;
 import pl.projekt.projekt.external.dto.VpicDecodeResponse;
@@ -30,14 +33,17 @@ public class PojazdController {
 
     private static final Logger log = LogManager.getLogger(PojazdController.class);
 
+    private final UzytkownikRepo uzytkownikRepo;
     private final PojazdRepo pojazdRepo;
+
 
     // klient do zewnętrznej usługi (WebClient)
     private final VpicClient vpicClient;
 
-    public PojazdController(PojazdRepo pojazdRepo, VpicClient vpicClient) {
+    public PojazdController(PojazdRepo pojazdRepo, VpicClient vpicClient, UzytkownikRepo uzytkownikRepo) {
         this.pojazdRepo = pojazdRepo;
         this.vpicClient = vpicClient;
+        this.uzytkownikRepo = uzytkownikRepo;
     }
 
     // GET /pojazd
@@ -54,6 +60,15 @@ public class PojazdController {
         return ResponseEntity.ok(res);
     }
 
+    @GetMapping("/uzytkownik/{id}")
+    public ResponseEntity<List<PojazdEnt>> getByUzytkownik(@PathVariable Long id) {
+        log.info("GET /pojazd/uzytkownik/{} - pobieranie pojazdów użytkownika", id);
+
+        List<PojazdEnt> res = pojazdRepo.findByUzytkownikId(id);
+
+        return ResponseEntity.ok(res);
+    }
+
     // POST /pojazd
     @Operation(
             summary = "Dodaj nowy pojazd",
@@ -64,48 +79,69 @@ public class PojazdController {
     @ApiResponse(responseCode = "409", description = "Konflikt danych (np. naruszenie unikalności VIN / numeru rejestracyjnego)")
     @PostMapping
     public ResponseEntity<PojazdEnt> create(
-            @Parameter(description = "Obiekt pojazdu do zapisania w bazie", required = true)
-            @RequestBody PojazdEnt pojazd
+            @Parameter(description = "Dane pojazdu do zapisania w bazie", required = true)
+            @RequestBody PojazdCreateRequest req
     ) {
-        if (pojazd == null) {
-            log.warn("POST /pojazd - brak body (pojazd == null)");
+        if (req == null) {
+            log.warn("POST /pojazd - brak body (req == null)");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brak danych pojazdu w body");
         }
 
-        if (pojazd.getVin() == null || pojazd.getVin().isBlank()) {
+        if (req.vin == null || req.vin.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "VIN jest wymagany");
         }
-        if (pojazdRepo.existsByVin(pojazd.getVin())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Pojazd o VIN już istnieje: " + pojazd.getVin());
+
+        if (req.uzytkownikId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "uzytkownikId jest wymagany");
         }
 
+        if (pojazdRepo.existsByVin(req.vin)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Pojazd o VIN już istnieje: " + req.vin);
+        }
+
+        UzytkownikEnt user = uzytkownikRepo.findById(req.uzytkownikId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Nie znaleziono użytkownika id=" + req.uzytkownikId
+                ));
+
+        PojazdEnt pojazd = new PojazdEnt();
+        pojazd.setVin(req.vin);
+        pojazd.setMarka(req.marka);
+        pojazd.setModel(req.model);
+        pojazd.setRok(req.rok);
+        pojazd.setNumerRejestracyjny(req.numerRejestracyjny);
+        pojazd.setUzytkownik(user);
+
         try {
-            log.info("POST /pojazd - próba zapisu pojazdu marka={}, model={}, rok={}, vin={}, numerRejestracyjny={}",
+            log.info("POST /pojazd - zapis pojazdu marka={}, model={}, rok={}, vin={}, użytkownikId={}",
                     safe(pojazd.getMarka()),
                     safe(pojazd.getModel()),
                     pojazd.getRok(),
                     safe(pojazd.getVin()),
-                    safe(pojazd.getNumerRejestracyjny())
+                    req.uzytkownikId
             );
-        } catch (Exception ignore) {
-            log.debug("POST /pojazd - log szczegółów pominięty (brak getterów lub inny problem)");
-        }
 
-        try {
             PojazdEnt saved = pojazdRepo.save(pojazd);
+
             log.info("POST /pojazd - zapisano pojazd id={}", saved.getId());
+
             return ResponseEntity.ok(saved);
 
         } catch (DataIntegrityViolationException e) {
             log.error("POST /pojazd - naruszenie integralności danych: {}", e.getMessage(), e);
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Nie można zapisać pojazdu: konflikt danych (sprawdź VIN / numer rejestracyjny lub wymagane pola).",
+                    "Nie można zapisać pojazdu: konflikt danych.",
                     e
             );
         } catch (Exception e) {
             log.error("POST /pojazd - nieoczekiwany błąd zapisu pojazdu: {}", e.getMessage(), e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Błąd serwera podczas zapisu pojazdu", e);
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Błąd serwera podczas zapisu pojazdu",
+                    e
+            );
         }
     }
 

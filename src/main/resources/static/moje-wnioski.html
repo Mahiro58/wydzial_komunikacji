@@ -7,6 +7,9 @@
 <body>
 
 <h1>Moje wnioski</h1>
+<div id="powiadomienie" style="border:1px solid #999; padding:10px; margin:10px 0;">
+    Brak nowych powiadomień
+</div>
 
 <button onclick="pobierzWnioski()">Odśwież</button>
 
@@ -26,6 +29,8 @@
 <br>
 <a href="/user-panel.html">Powrót do panelu</a>
 
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 <script>
     const userId = localStorage.getItem("userId");
 
@@ -62,6 +67,28 @@
     }
 
     pobierzWnioski();
+    
+    function polaczWebSocket() {
+    const socket = new SockJS("/my-websocket");
+    const stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function () {
+        console.log("Połączono z WebSocket");
+
+        stompClient.subscribe("/topic/wniosek/events", function (message) {
+            const event = JSON.parse(message.body);
+
+            document.getElementById("powiadomienie").innerText =
+                "🔔 Zmieniono status wniosku ID " + event.wniosekId +
+                " z " + event.oldStatus +
+                " na " + event.newStatus;
+
+            pobierzWnioski();
+        });
+    });
+}
+
+polaczWebSocket();
 </script>
 
 </body>

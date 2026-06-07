@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Moje pojazdy</title>
+</head>
+<body>
+
+<h1>Moje pojazdy</h1>
+
+<table border="1" cellpadding="8">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Marka</th>
+        <th>Model</th>
+        <th>Rok</th>
+        <th>VIN</th>
+        <th>Numer rej.</th>
+    </tr>
+    </thead>
+
+    <tbody id="tabela"></tbody>
+</table>
+
+<br>
+<a href="/user-panel.html">
+    Powrót do panelu
+</a>
+
+<script>
+
+    const userId =
+        localStorage.getItem("userId");
+
+    if (!userId) {
+        window.location.href =
+            "/login.html";
+    }
+
+    async function pobierzPojazdy() {
+
+        const response =
+            await fetch(
+                "/pojazd/uzytkownik/" + userId
+            );
+
+        const pojazdy =
+            await response.json();
+
+        const tabela =
+            document.getElementById("tabela");
+
+        tabela.innerHTML = "";
+
+        pojazdy.forEach(p => {
+
+            const row =
+                document.createElement("tr");
+
+            row.innerHTML = `
+                <td>${p.id}</td>
+                <td>${p.marka}</td>
+                <td>${p.model}</td>
+                <td>${p.rok ?? "-"}</td>
+                <td>${p.vin}</td>
+                <td>${p.numerRejestracyjny ?? "-"}</td>
+            `;
+
+            tabela.appendChild(row);
+        });
+    }
+
+    pobierzPojazdy();
+
+</script>
+
+</body>
+</html>

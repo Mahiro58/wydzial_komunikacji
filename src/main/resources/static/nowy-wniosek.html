@@ -9,11 +9,16 @@
 <h1>Złóż nowy wniosek</h1>
 
 <form onsubmit="zlozWniosek(event)">
-    <label>ID pojazdu:</label><br>
-    <input id="pojazdId" type="number" required><br><br>
+    <label>Wybierz pojazd:</label><br>
+
+    <select id="pojazdId" required>
+        <option value="">-- wybierz pojazd --</option>
+    </select>
+
+    <br><br>
 
     <label>Typ wniosku:</label><br>
-    <select id="typ" required>
+    <select id="typ" required onchange="obliczOplate()">
         <option value="REJESTRACJA">Rejestracja pojazdu</option>
         <option value="CZASOWA">Czasowa rejestracja</option>
         <option value="WYREJESTROWANIE">Wyrejestrowanie pojazdu</option>
@@ -23,51 +28,140 @@
     <label>Opis:</label><br>
     <textarea id="opis" rows="5" cols="40"></textarea><br><br>
 
-    <button type="submit">Wyślij wniosek</button>
-</form>
+    <h3>Dokumenty</h3>
 
-<p id="msg"></p>
+    <label><input type="checkbox" id="dowodWlasnosci"> Dowód własności</label><br>
+    <label><input type="checkbox" id="dowodRejestracyjny"> Dowód rejestracyjny</label><br>
+    <label><input type="checkbox" id="kartaPojazdu"> Karta pojazdu</label><br>
+    <label><input type="checkbox" id="polisaOc"> Polisa OC</label><br>
+    <label><input type="checkbox" id="potwierdzenieOplat"> Potwierdzenie opłat</label><br>
 
-<br>
-<a href="/user-panel.html">Powrót do panelu</a>
+    <h3>Tablice rejestracyjne</h3>
 
-<script>
-    const userId = localStorage.getItem("userId");
+    <select id="typTablic" onchange="obliczOplate()">
+        <option value="ZWYCZAJNE">Zwyczajne</option>
+        <option value="INDYWIDUALNE">Indywidualne</option>
+        <option value="ZMNIEJSZONE">Zmniejszone</option>
+    </select>
 
-    if (!userId) {
-        window.location.href = "/login.html";
-    }
+    <br><br>
 
-    async function zlozWniosek(event) {
-        event.preventDefault();
+    <label>
+        <input type="checkbox" id="dodatkowaTablica" onchange="obliczOplate()">
+        Dodatkowa tablica na bagażnik
+    </label><br>
 
-        const data = {
-            uzytkownikId: Number(userId),
-            pojazdId: Number(document.getElementById("pojazdId").value),
-            typ: document.getElementById("typ").value,
-            opis: document.getElementById("opis").value,
-            urzednikId: null
-        };
+    <label>
+        <input type="checkbox" id="zachowajNumer" onchange="obliczOplate()">
+        Zachowaj dotychczasowy numer rejestracyjny
+    </label>
 
-        const response = await fetch("/wniosek", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        });
+    <h3>Opłata</h3>
+    <p>Do zapłaty: <strong id="oplata">0 zł</strong></p>
 
-        if (response.ok) {
-            const saved = await response.json();
-            document.getElementById("msg").innerText =
-                "Wniosek złożony. ID: " + saved.id + ", status: " + saved.status;
-        } else {
-            const error = await response.text();
-            document.getElementById("msg").innerText =
-                "Błąd składania wniosku: " + error;
+    <label>
+        <input type="checkbox" id="oplacono">
+        Oznacz jako opłacone
+    </label>
+
+    <br><br>
+
+        <button type="submit">Wyślij wniosek</button>
+    </form>
+
+    <p id="msg"></p>
+
+    <br>
+    <a href="/user-panel.html">Powrót do panelu</a>
+
+    <script>
+        const userId = localStorage.getItem("userId");
+
+        if (!userId) {
+            window.location.href = "/login.html";
         }
-    }
-</script>
+
+        async function zlozWniosek(event) {
+            event.preventDefault();
+
+            const data = {
+                uzytkownikId: Number(userId),
+                pojazdId: Number(document.getElementById("pojazdId").value),
+                typ: document.getElementById("typ").value,
+                opis: document.getElementById("opis").value,
+                urzednikId: null
+            };
+
+            const response = await fetch("/wniosek", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                const saved = await response.json();
+                document.getElementById("msg").innerText =
+                    "Wniosek złożony. ID: " + saved.id + ", status: " + saved.status;
+            } else {
+                const error = await response.text();
+                document.getElementById("msg").innerText =
+                    "Błąd składania wniosku: " + error;
+            }
+        }
+        async function pobierzPojazdy() {
+
+            const response =
+                await fetch("/pojazd/uzytkownik/" + userId);
+
+            const pojazdy =
+                await response.json();
+
+            const select =
+                document.getElementById("pojazdId");
+
+            pojazdy.forEach(p => {
+
+                const option =
+                    document.createElement("option");
+
+                option.value = p.id;
+
+                option.text =
+                    `${p.marka} ${p.model} (${p.numerRejestracyjny ?? "brak nr"})`;
+
+                select.appendChild(option);
+            });
+        }
+
+
+        function obliczOplate() {
+            const typ = document.getElementById("typ").value;
+            const typTablic = document.getElementById("typTablic").value;
+            const dodatkowaTablica = document.getElementById("dodatkowaTablica").checked;
+            const zachowajNumer = document.getElementById("zachowajNumer").checked;
+
+            let oplata = 0;
+
+            if (typ === "REJESTRACJA") oplata = 160;
+            if (typ === "CZASOWA") oplata = 80;
+            if (typ === "WYREJESTROWANIE") oplata = 30;
+            if (typ === "ZBYCIE_NABYCIE") oplata = 0;
+
+            if (typTablic === "INDYWIDUALNE") oplata += 1000;
+            if (typTablic === "ZMNIEJSZONE") oplata += 20;
+            if (dodatkowaTablica) oplata += 50;
+            if (zachowajNumer) oplata -= 40;
+
+            if (oplata < 0) oplata = 0;
+
+            document.getElementById("oplata").innerText = oplata + " zł";
+        }
+
+        pobierzPojazdy();
+        obliczOplate();
+    </script>
 
 </body>
 </html>

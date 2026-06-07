@@ -27,4 +27,8 @@ public class PojazdEnt {
 
     @Column(name = "numer_rejestracyjny", length = 12)
     private String numerRejestracyjny;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "uzytkownik_id", nullable = false)
+    private UzytkownikEnt uzytkownik;
 }
