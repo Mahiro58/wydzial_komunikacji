@@ -9,24 +9,88 @@
 <h1>Złóż nowy wniosek</h1>
 
 <form onsubmit="zlozWniosek(event)">
-    <label>Wybierz pojazd:</label><br>
-
-    <select id="pojazdId" required>
-        <option value="">-- wybierz pojazd --</option>
-    </select>
 
     <br><br>
 
     <label>Typ wniosku:</label><br>
-    <select id="typ" required onchange="obliczOplate()">
+    <select id="typ" required onchange="pokazPolaDlaTypu(); obliczOplate();">
+        <option value="">-- wybierz typ wniosku --</option>
         <option value="REJESTRACJA">Rejestracja pojazdu</option>
         <option value="CZASOWA">Czasowa rejestracja</option>
         <option value="WYREJESTROWANIE">Wyrejestrowanie pojazdu</option>
-        <option value="ZBYCIE_NABYCIE">Zgłoszenie zbycia/nabycia pojazdu</option>
-    </select><br><br>
+        <option value="ZBYCIE">Zgłoszenie zbycia pojazdu</option>
+    </select>
+    <br><br>
 
     <label>Opis:</label><br>
-    <textarea id="opis" rows="5" cols="40"></textarea><br><br>
+    <textarea id="opis" rows="5" cols="40"></textarea>
+    <br><br>
+
+    <div id="sekcjaWyborPojazdu" style="display:none;">
+        <h3>Wybierz pojazd</h3>
+
+        <label>Twój pojazd:</label><br>
+        <select id="pojazdId">
+            <option value="">-- wybierz pojazd --</option>
+        </select>
+        <br><br>
+    </div>
+
+    <div id="sekcjaDanePojazdu" style="display:none;">
+        <h3>Dane pojazdu</h3>
+
+        <label>Rodzaj pojazdu:</label><br>
+        <input id="rodzajPojazdu"><br><br>
+
+        <label>Przeznaczenie pojazdu:</label><br>
+        <input id="przeznaczenie"><br><br>
+
+        <label>Marka:</label><br>
+        <input id="marka"><br><br>
+
+        <label>Model:</label><br>
+        <input id="model"><br><br>
+
+        <label>Typ pojazdu:</label><br>
+        <input id="typPojazdu"><br><br>
+
+        <label>Rok produkcji:</label><br>
+        <input id="rok" type="number" min="1900" max="3000"><br><br>
+
+        <label>Numer VIN:</label><br>
+        <input id="vin" maxlength="17"><br><br>
+
+        <label>Dotychczasowy numer rejestracyjny pojazdu:</label><br>
+        <input id="numerRejestracyjny"><br><br>
+
+        <label>Data nabycia / sprowadzenia:</label><br>
+        <input id="dataNabycia" type="date"><br><br>
+    </div>
+
+    <div id="sekcjaWyrejestrowanie" style="display:none;">
+        <h3>Dane do wyrejestrowania</h3>
+
+        <label>Powód wyrejestrowania:</label><br>
+        <select id="powodWyrejestrowania">
+            <option value="">-- wybierz powód --</option>
+            <option value="ZLOMOWANIE">Złomowanie pojazdu</option>
+            <option value="KRADZIEZ">Kradzież pojazdu</option>
+            <option value="WYWOZ_ZA_GRANICE">Wywóz za granicę</option>
+            <option value="TRWALA_UTRATA">Trwała utrata pojazdu</option>
+        </select>
+        <br><br>
+    </div>
+
+    <div id="sekcjaZbycie" style="display:none;">
+        <h3>Dane transakcji</h3>
+
+        <label>Data sprzedaży:</label><br>
+        <input id="dataTransakcji" type="date"><br><br>
+
+        <label>Dane kupującego:</label><br>
+        <textarea id="daneDrugiejStrony"></textarea>
+        <br><br>
+    </div>
 
     <h3>Dokumenty</h3>
 
@@ -36,25 +100,39 @@
     <label><input type="checkbox" id="polisaOc"> Polisa OC</label><br>
     <label><input type="checkbox" id="potwierdzenieOplat"> Potwierdzenie opłat</label><br>
 
-    <h3>Tablice rejestracyjne</h3>
+    <div id="sekcjaTablice" style="display:none;">
+        <h3>Tablice rejestracyjne</h3>
 
-    <select id="typTablic" onchange="obliczOplate()">
-        <option value="ZWYCZAJNE">Zwyczajne</option>
-        <option value="INDYWIDUALNE">Indywidualne</option>
-        <option value="ZMNIEJSZONE">Zmniejszone</option>
-    </select>
+        <select id="typTablic"
+                onchange="obliczOplate(); pokazNumerIndywidualny();">
+            <option value="ZWYCZAJNE">Zwyczajne</option>
+            <option value="INDYWIDUALNE">Indywidualne</option>
+            <option value="ZMNIEJSZONE">Zmniejszone</option>
+        </select>
 
-    <br><br>
+        <div id="sekcjaNumerIndywidualny" style="display:none;">
+            <br>
+            <label>Własny numer rejestracyjny:</label><br>
+            <input id="numerIndywidualny" maxlength="12">
+        </div>
 
-    <label>
-        <input type="checkbox" id="dodatkowaTablica" onchange="obliczOplate()">
-        Dodatkowa tablica na bagażnik
-    </label><br>
+        <br><br>
 
-    <label>
-        <input type="checkbox" id="zachowajNumer" onchange="obliczOplate()">
-        Zachowaj dotychczasowy numer rejestracyjny
-    </label>
+        <label>
+            <input type="checkbox"
+                   id="dodatkowaTablica"
+                   onchange="obliczOplate()">
+            Dodatkowa tablica na bagażnik
+        </label>
+        <br>
+
+        <label>
+            <input type="checkbox"
+                   id="zachowajNumer"
+                   onchange="obliczOplate()">
+            Zachowaj dotychczasowy numer rejestracyjny
+        </label>
+    </div>
 
     <h3>Opłata</h3>
     <p>Do zapłaty: <strong id="oplata">0 zł</strong></p>
@@ -66,102 +144,229 @@
 
     <br><br>
 
-        <button type="submit">Wyślij wniosek</button>
-    </form>
+    <button type="submit">Wyślij wniosek</button>
+</form>
 
-    <p id="msg"></p>
+<p id="msg"></p>
 
-    <br>
-    <a href="/user-panel.html">Powrót do panelu</a>
+<br>
+<a href="/user-panel.html">Powrót do panelu</a>
 
-    <script>
-        const userId = localStorage.getItem("userId");
+<script>
 
-        if (!userId) {
-            window.location.href = "/login.html";
+    const userId = localStorage.getItem("userId");
+
+    if (!userId) {
+        window.location.href = "/login.html";
+    }
+
+    async function zlozWniosek(event) {
+
+        event.preventDefault();
+
+        const typ = document.getElementById("typ").value;
+
+        const pojazdSelect =
+            document.getElementById("pojazdId");
+
+        const pojazdIdValue =
+            pojazdSelect ? pojazdSelect.value : "";
+
+        if ((typ === "WYREJESTROWANIE" || typ === "ZBYCIE")
+            && !pojazdIdValue) {
+
+            document.getElementById("msg").innerText =
+                "Wybierz pojazd.";
+
+            return;
         }
 
-        async function zlozWniosek(event) {
-            event.preventDefault();
+        const data = {
 
-            const data = {
-                uzytkownikId: Number(userId),
-                pojazdId: Number(document.getElementById("pojazdId").value),
-                typ: document.getElementById("typ").value,
-                opis: document.getElementById("opis").value,
-                urzednikId: null
-            };
+            uzytkownikId: Number(userId),
+            pojazdId: pojazdIdValue
+                ? Number(pojazdIdValue)
+                : null,
 
-            const response = await fetch("/wniosek", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(data)
-            });
+            typ: typ,
+            opis: document.getElementById("opis").value,
+            urzednikId: null,
 
-            if (response.ok) {
-                const saved = await response.json();
-                document.getElementById("msg").innerText =
-                    "Wniosek złożony. ID: " + saved.id + ", status: " + saved.status;
-            } else {
-                const error = await response.text();
-                document.getElementById("msg").innerText =
-                    "Błąd składania wniosku: " + error;
-            }
+            vin: document.getElementById("vin")?.value || null,
+            marka: document.getElementById("marka")?.value || null,
+            model: document.getElementById("model")?.value || null,
+
+            rok: document.getElementById("rok")?.value
+                ? Number(document.getElementById("rok").value)
+                : null,
+
+            numerRejestracyjny:
+                document.getElementById("numerRejestracyjny")?.value || null,
+
+            rodzajPojazdu:
+                document.getElementById("rodzajPojazdu")?.value || null,
+
+            przeznaczenie:
+                document.getElementById("przeznaczenie")?.value || null,
+
+            dataNabycia:
+                document.getElementById("dataNabycia")?.value || null,
+
+            typTablic:
+                document.getElementById("typTablic")?.value || null,
+
+            zachowajNumer:
+                document.getElementById("zachowajNumer")?.checked || false,
+
+            numerIndywidualny:
+                document.getElementById("numerIndywidualny")?.value || null,
+
+            powodWyrejestrowania:
+                document.getElementById("powodWyrejestrowania")?.value || null
+        };
+
+        console.log("Wysyłam wniosek:", data);
+
+        const response = await fetch("/wniosek", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            const saved = await response.json();
+
+            document.getElementById("msg").innerText =
+                "Wniosek złożony. ID: "
+                + saved.id
+                + ", status: "
+                + saved.status;
+
+        } else {
+
+            const error = await response.text();
+
+            document.getElementById("msg").innerText =
+                "Błąd składania wniosku: " + error;
         }
-        async function pobierzPojazdy() {
+    }
 
-            const response =
-                await fetch("/pojazd/uzytkownik/" + userId);
+    async function pobierzPojazdy() {
 
-            const pojazdy =
-                await response.json();
+        const response =
+            await fetch("/pojazd/uzytkownik/" + userId);
 
-            const select =
-                document.getElementById("pojazdId");
+        const pojazdy =
+            await response.json();
 
-            pojazdy.forEach(p => {
+        const select =
+            document.getElementById("pojazdId");
 
-                const option =
-                    document.createElement("option");
+        select.innerHTML =
+            `<option value="">-- wybierz pojazd --</option>`;
 
-                option.value = p.id;
+        pojazdy.forEach(p => {
 
-                option.text =
-                    `${p.marka} ${p.model} (${p.numerRejestracyjny ?? "brak nr"})`;
+            const option =
+                document.createElement("option");
 
-                select.appendChild(option);
-            });
-        }
+            option.value = p.id;
 
+            option.text =
+                `${p.marka} ${p.model} (${p.numerRejestracyjny ?? "brak nr"})`;
 
-        function obliczOplate() {
-            const typ = document.getElementById("typ").value;
-            const typTablic = document.getElementById("typTablic").value;
-            const dodatkowaTablica = document.getElementById("dodatkowaTablica").checked;
-            const zachowajNumer = document.getElementById("zachowajNumer").checked;
+            select.appendChild(option);
+        });
+    }
 
-            let oplata = 0;
+    function obliczOplate() {
 
-            if (typ === "REJESTRACJA") oplata = 160;
-            if (typ === "CZASOWA") oplata = 80;
-            if (typ === "WYREJESTROWANIE") oplata = 30;
-            if (typ === "ZBYCIE_NABYCIE") oplata = 0;
+        const typ =
+            document.getElementById("typ").value;
+
+        const typTablic =
+            document.getElementById("typTablic").value;
+
+        const dodatkowaTablica =
+            document.getElementById("dodatkowaTablica").checked;
+
+        const zachowajNumer =
+            document.getElementById("zachowajNumer").checked;
+
+        let oplata = 0;
+
+        if (typ === "REJESTRACJA") oplata = 160;
+        if (typ === "CZASOWA") oplata = 80;
+        if (typ === "WYREJESTROWANIE") oplata = 30;
+        if (typ === "ZBYCIE") oplata = 0;
+
+        if (typ === "REJESTRACJA" || typ === "CZASOWA") {
 
             if (typTablic === "INDYWIDUALNE") oplata += 1000;
             if (typTablic === "ZMNIEJSZONE") oplata += 20;
             if (dodatkowaTablica) oplata += 50;
             if (zachowajNumer) oplata -= 40;
-
-            if (oplata < 0) oplata = 0;
-
-            document.getElementById("oplata").innerText = oplata + " zł";
         }
 
-        pobierzPojazdy();
+        if (oplata < 0) oplata = 0;
+
+        document.getElementById("oplata").innerText =
+            oplata + " zł";
+    }
+
+    function pokazPolaDlaTypu() {
+
+        const typ =
+            document.getElementById("typ").value;
+
+        document.getElementById("sekcjaDanePojazdu").style.display = "none";
+        document.getElementById("sekcjaWyrejestrowanie").style.display = "none";
+        document.getElementById("sekcjaZbycie").style.display = "none";
+        document.getElementById("sekcjaWyborPojazdu").style.display = "none";
+        document.getElementById("sekcjaTablice").style.display = "none";
+
+        if (typ === "REJESTRACJA" || typ === "CZASOWA") {
+            document.getElementById("sekcjaDanePojazdu").style.display = "block";
+            document.getElementById("sekcjaTablice").style.display = "block";
+        }
+
+        if (typ === "WYREJESTROWANIE") {
+            document.getElementById("sekcjaWyborPojazdu").style.display = "block";
+            document.getElementById("sekcjaWyrejestrowanie").style.display = "block";
+        }
+
+        if (typ === "ZBYCIE") {
+            document.getElementById("sekcjaWyborPojazdu").style.display = "block";
+            document.getElementById("sekcjaZbycie").style.display = "block";
+        }
+
+        pokazNumerIndywidualny();
         obliczOplate();
-    </script>
+    }
+
+    function pokazNumerIndywidualny() {
+
+        const typ =
+            document.getElementById("typ").value;
+
+        const typTablic =
+            document.getElementById("typTablic").value;
+
+        document.getElementById("sekcjaNumerIndywidualny").style.display =
+            (typ === "REJESTRACJA" || typ === "CZASOWA")
+            && typTablic === "INDYWIDUALNE"
+                ? "block"
+                : "none";
+    }
+
+    pobierzPojazdy();
+    obliczOplate();
+    pokazPolaDlaTypu();
+    pokazNumerIndywidualny();
+
+</script>
 
 </body>
 </html>
