@@ -2,6 +2,8 @@ package pl.projekt.projekt.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -29,4 +31,11 @@ public class UzytkownikEnt {
     @Column(length = 30)
     private String telefon;
 
+    @Column(nullable = false)
+    private String haslo;
+
+    // NOWE - rola użytkownika
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Rola rola;
 }

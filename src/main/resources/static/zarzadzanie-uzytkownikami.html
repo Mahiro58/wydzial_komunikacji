@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zarządzanie użytkownikami</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/layout.js" defer></script>
+    <script src="/js/zarzadzanie-uzytkownikami.js" defer></script>
+</head>
+<body>
+
+<header class="app-header">
+    <nav class="navbar">
+        <a href="/index.html" class="brand">
+            <img src="/images/logo.svg" alt="Logo Wydziału Komunikacji" class="logo">
+            <div class="brand-text">
+                <span class="brand-title">Aplikacja Wydziału Komunikacji</span>
+                <span class="brand-subtitle">e-Urząd • Rejestracja pojazdów</span>
+            </div>
+        </a>
+
+        <button class="hamburger" id="hamburgerBtn" type="button">☰</button>
+
+        <div class="nav-links" id="navLinks">
+            <a href="/index.html">Strona główna</a>
+            <a href="/user-panel.html" data-auth="true">Panel użytkownika</a>
+            <a href="/urzednik-panel.html" data-auth="true" data-role="URZEDNIK">Panel urzędnika</a>
+            <a href="/admin-panel.html" data-auth="true" data-role="ADMIN">Panel administratora</a>
+
+            <span class="user-info" id="userInfo"></span>
+            <button id="logoutBtn" type="button" data-auth="true">Wyloguj</button>
+        </div>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="card panel-admin">
+        <span class="badge">ADMIN</span>
+        <h1>Zarządzanie użytkownikami i rolami</h1>
+        <p class="lead">Przeglądaj konta użytkowników oraz zmieniaj przypisane role.</p>
+    </section>
+
+    <section class="card">
+        <h2>Filtrowanie i akcje</h2>
+
+        <div class="grid grid-2">
+            <div>
+                <label for="filtr">Filtruj użytkowników</label>
+                <input type="text" id="filtr" placeholder="np. Kowalski, admin, USER..." oninput="filtrujUzytkownikow()">
+            </div>
+
+            <div style="display:flex; align-items:flex-end;">
+                <button class="btn" type="button" onclick="pobierzUzytkownikow()">Odśwież</button>
+            </div>
+        </div>
+
+        <p id="msg" class="alert hidden"></p>
+    </section>
+
+    <section class="card">
+        <h2>Lista użytkowników</h2>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Imię</th>
+                    <th>Nazwisko</th>
+                    <th>Email</th>
+                    <th>Telefon</th>
+                    <th>Rola</th>
+                    <th>Akcja</th>
+                </tr>
+                </thead>
+
+                <tbody id="tabela"></tbody>
+            </table>
+        </div>
+
+        <div class="actions" style="margin-top:20px;">
+            <a href="/admin-panel.html" class="btn btn-outline">Powrót do panelu admina</a>
+        </div>
+    </section>
+</main>
+
+<footer class="footer">
+    © 2026 Aplikacja Wydziału Komunikacji
+</footer>
+
+</body>
+</html>

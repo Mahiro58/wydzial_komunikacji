@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logowanie</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/layout.js" defer></script>
+    <script src="/js/login.js" defer></script>
+</head>
+<body>
+
+<header class="app-header">
+    <nav class="navbar">
+        <a href="/index.html" class="brand">
+            <img src="/images/logo.svg" alt="Logo Wydziału Komunikacji" class="logo">
+
+            <div class="brand-text">
+                <span class="brand-title">
+                    Aplikacja Wydziału Komunikacji
+                </span>
+
+                <span class="brand-subtitle">
+                    e-Urząd • Rejestracja pojazdów
+                </span>
+            </div>
+        </a>
+
+        <button class="hamburger" id="hamburgerBtn" type="button">
+            ☰
+        </button>
+
+        <div class="nav-links" id="navLinks">
+            <a href="/index.html">Strona główna</a>
+
+            <a href="/login.html" data-guest="true">
+                Logowanie
+            </a>
+
+            <a href="/register.html" data-guest="true">
+                Rejestracja
+            </a>
+
+            <span class="user-info" id="userInfo"></span>
+
+            <button id="logoutBtn" type="button" data-auth="true">
+                Wyloguj
+            </button>
+        </div>
+    </nav>
+</header>
+
+<main class="container">
+
+    <section class="card" style="max-width: 460px; margin: 60px auto;">
+
+        <div style="text-align: center; margin-bottom: 24px;">
+            <span class="badge">LOGOWANIE</span>
+
+            <h1>Zaloguj się</h1>
+
+            <p class="lead">
+                Uzyskaj dostęp do systemu Wydziału Komunikacji
+            </p>
+        </div>
+
+        <form id="loginForm">
+
+            <div>
+                <label for="email">
+                    Adres email
+                </label>
+
+                <input
+                    id="email"
+                    type="email"
+                    placeholder="Wpisz adres email"
+                    required
+                >
+            </div>
+
+            <div>
+                <label for="haslo">
+                    Hasło
+                </label>
+
+                <input
+                    id="haslo"
+                    type="password"
+                    placeholder="Wpisz hasło"
+                    required
+                >
+            </div>
+
+            <button class="btn" type="submit">
+                Zaloguj
+            </button>
+
+            <p id="msg" class="alert hidden"></p>
+
+        </form>
+
+        <div style="text-align:center; margin-top:20px;">
+            Nie masz konta?
+            <a href="/register.html">
+                Zarejestruj się
+            </a>
+        </div>
+
+    </section>
+
+</main>
+
+<footer class="footer">
+    © 2026 Aplikacja Wydziału Komunikacji
+</footer>
+
+</body>
+</html>

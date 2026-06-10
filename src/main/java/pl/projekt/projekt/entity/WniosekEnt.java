@@ -3,6 +3,7 @@ package pl.projekt.projekt.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -24,6 +25,21 @@ public class WniosekEnt {
 
     private String opis;
 
+    private String vin;
+    private String marka;
+    private String model;
+    private Short rok;
+    private String numerRejestracyjny;
+    private String rodzajPojazdu;
+    private String przeznaczenie;
+    private LocalDate dataNabycia;
+    private String typTablic;
+    private Boolean zachowajNumer;
+    private String numerIndywidualny;
+    private Integer kwotaOplaty = 0;
+    private Boolean oplacono = false;
+    private String komentarzUrzednika;
+
     @Column(name = "data_zlozenia", nullable = false)
     private LocalDateTime dataZlozenia;
 
@@ -32,8 +48,8 @@ public class WniosekEnt {
     @JoinColumn(name = "uzytkownik_id", nullable = false)
     private UzytkownikEnt uzytkownik;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "pojazd_id", nullable = false)
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "pojazd_id", nullable = true)
     private PojazdEnt pojazd;
 
     @ManyToOne(optional = true)

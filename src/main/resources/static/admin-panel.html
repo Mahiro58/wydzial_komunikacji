@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel administratora</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/layout.js" defer></script>
+    <script src="/js/admin-panel.js" defer></script>
+</head>
+<body>
+
+<header class="app-header">
+    <nav class="navbar">
+        <a href="/index.html" class="brand">
+            <img src="/images/logo.svg" alt="Logo Wydziału Komunikacji" class="logo">
+
+            <div class="brand-text">
+                <span class="brand-title">
+                    Aplikacja Wydziału Komunikacji
+                </span>
+
+                <span class="brand-subtitle">
+                    e-Urząd • Rejestracja pojazdów
+                </span>
+            </div>
+        </a>
+
+        <button class="hamburger" id="hamburgerBtn" type="button">
+            ☰
+        </button>
+
+        <div class="nav-links" id="navLinks">
+            <a href="/index.html">Strona główna</a>
+
+            <a href="/user-panel.html" data-auth="true">
+                Panel użytkownika
+            </a>
+
+            <a href="/urzednik-panel.html" data-auth="true" data-role="URZEDNIK">
+                Panel urzędnika
+            </a>
+
+            <a href="/admin-panel.html" data-auth="true" data-role="ADMIN">
+                Panel administratora
+            </a>
+
+            <a href="/login.html" data-guest="true">
+                Logowanie
+            </a>
+
+            <a href="/register.html" data-guest="true">
+                Rejestracja
+            </a>
+
+            <span class="user-info" id="userInfo"></span>
+
+            <button id="logoutBtn" type="button" data-auth="true">
+                Wyloguj
+            </button>
+        </div>
+    </nav>
+</header>
+
+<main class="container">
+
+    <section class="card panel-admin">
+        <span class="badge">ADMIN</span>
+
+        <h1>Panel administratora systemu</h1>
+
+        <p>
+            Zalogowany jako:
+            <strong id="email"></strong>
+        </p>
+    </section>
+
+    <section class="card">
+        <h2>Zarządzanie systemem</h2>
+
+        <p>
+            Wybierz moduł administracyjny, którym chcesz zarządzać.
+        </p>
+
+        <div class="grid grid-3">
+
+            <div class="card">
+                <h3>Użytkownicy i role</h3>
+                <p>
+                    Zarządzanie kontami użytkowników oraz przypisanymi rolami.
+                </p>
+
+                <button
+                        class="btn"
+                        type="button"
+                        onclick="location.href='/zarzadzanie-uzytkownikami.html'"
+                >
+                    Zarządzanie użytkownikami i rolami
+                </button>
+            </div>
+
+            <div class="card">
+                <h3>Panel urzędnika</h3>
+                <p>
+                    Przejście do modułu obsługi wniosków urzędowych.
+                </p>
+
+                <button
+                        class="btn btn-secondary"
+                        type="button"
+                        onclick="location.href='/urzednik-panel.html'"
+                >
+                    Panel urzędnika
+                </button>
+            </div>
+
+            <div class="card">
+                <h3>Bezpieczeństwo</h3>
+                <p>
+                    Podgląd i konfiguracja ustawień bezpieczeństwa systemu.
+                </p>
+
+                <button
+                        class="btn btn-danger"
+                        type="button"
+                        onclick="location.href='/bezpieczenstwo.html'"
+                >
+                    Bezpieczeństwo systemu
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+</main>
+
+<footer class="footer">
+    © 2026 Aplikacja Wydziału Komunikacji
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wydział Komunikacji</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/layout.js" defer></script>
+</head>
+<body>
+
+<header class="app-header">
+    <nav class="navbar">
+        <a href="/index.html" class="brand">
+            <img src="/images/logo.svg" alt="Logo Wydziału Komunikacji" class="logo">
+            <span>Aplikacja Wydziału Komunikacji</span>
+            <span class="brand-subtitle">e-Urząd • Rejestracja pojazdów</span>
+        </a>
+
+        <button class="hamburger" id="hamburgerBtn" type="button">☰</button>
+
+        <div class="nav-links" id="navLinks">
+            <a href="/index.html">Strona główna</a>
+            <a href="/user-panel.html" data-auth="true">Panel użytkownika</a>
+            <a href="/urzednik-panel.html" data-auth="true" data-role="URZEDNIK">Panel urzędnika</a>
+            <a href="/admin-panel.html" data-auth="true" data-role="ADMIN">Panel administratora</a>
+
+            <a href="/login.html" data-guest="true">Logowanie</a>
+            <a href="/register.html" data-guest="true">Rejestracja</a>
+
+            <span class="user-info" id="userInfo"></span>
+            <button id="logoutBtn" type="button" data-auth="true">Wyloguj</button>
+        </div>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="card hero-card">
+        <span class="badge">E-Urząd</span>
+
+        <h1>System Wydziału Komunikacji</h1>
+
+        <p class="lead">
+            Rejestracja pojazdów i obsługa wniosków online
+        </p>
+
+        <p>
+            Za pomocą systemu możesz założyć konto, zalogować się oraz zarządzać
+            sprawami związanymi z pojazdami bez wizyty w urzędzie.
+        </p>
+
+        <div class="actions">
+            <a href="/login.html" class="btn" data-guest="true">Logowanie</a>
+            <a href="/register.html" class="btn btn-outline" data-guest="true">Rejestracja</a>
+            <a href="/user-panel.html" class="btn btn-success" data-auth="true">Panel użytkownika</a>
+            <a href="/urzednik-panel.html" class="btn btn-secondary" data-auth="true" data-role="URZEDNIK">Panel urzędnika</a>
+            <a href="/admin-panel.html" class="btn btn-danger" data-auth="true" data-role="ADMIN">Panel administratora</a>
+        </div>
+    </section>
+
+    <section class="grid grid-3">
+        <div class="card">
+            <h3>Rejestracja pojazdu</h3>
+            <p>Składaj wnioski o rejestrację pojazdów bez wychodzenia z domu.</p>
+        </div>
+
+        <div class="card">
+            <h3>Status spraw</h3>
+            <p>Sprawdzaj aktualny status swoich wniosków online.</p>
+        </div>
+
+        <div class="card">
+            <h3>Obsługa urzędowa</h3>
+            <p>Urzędnicy mogą przeglądać, akceptować i odrzucać wnioski.</p>
+        </div>
+    </section>
+</main>
+
+<footer class="footer">
+    © 2026 Aplikacja Wydziału Komunikacji
+</footer>
+
+</body>
+</html>

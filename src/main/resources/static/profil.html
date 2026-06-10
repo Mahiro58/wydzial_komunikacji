@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil użytkownika</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/layout.js" defer></script>
+    <script src="/js/profil.js" defer></script>
+</head>
+<body>
+
+<header class="app-header">
+    <nav class="navbar">
+        <a href="/index.html" class="brand">
+            <img src="/images/logo.svg" alt="Logo Wydziału Komunikacji" class="logo">
+            <div class="brand-text">
+                <span class="brand-title">Aplikacja Wydziału Komunikacji</span>
+                <span class="brand-subtitle">e-Urząd • Rejestracja pojazdów</span>
+            </div>
+        </a>
+
+        <button class="hamburger" id="hamburgerBtn" type="button">☰</button>
+
+        <div class="nav-links" id="navLinks">
+            <a href="/index.html">Strona główna</a>
+            <a href="/user-panel.html" data-auth="true">Panel użytkownika</a>
+            <a href="/urzednik-panel.html" data-auth="true" data-role="URZEDNIK">Panel urzędnika</a>
+            <a href="/admin-panel.html" data-auth="true" data-role="ADMIN">Panel administratora</a>
+
+            <span class="user-info" id="userInfo"></span>
+            <button id="logoutBtn" type="button" data-auth="true">Wyloguj</button>
+        </div>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="card panel-user">
+        <span class="badge">USER</span>
+        <h1>Profil użytkownika</h1>
+        <p class="lead">Zarządzaj swoimi danymi kontaktowymi.</p>
+    </section>
+
+    <section class="card" style="max-width: 620px;">
+        <form onsubmit="zapisz(event)">
+            <div>
+                <label for="imie">Imię</label>
+                <input id="imie" disabled>
+            </div>
+
+            <div>
+                <label for="nazwisko">Nazwisko</label>
+                <input id="nazwisko" disabled>
+            </div>
+
+            <div>
+                <label for="email">Email</label>
+                <input id="email" type="email" required>
+            </div>
+
+            <div>
+                <label for="telefon">Telefon</label>
+                <input id="telefon">
+            </div>
+
+            <p id="msg" class="alert hidden"></p>
+
+            <div class="actions">
+                <button type="submit" class="btn">Zapisz zmiany</button>
+                <a href="/user-panel.html" class="btn btn-outline">Powrót do panelu</a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<footer class="footer">
+    © 2026 Aplikacja Wydziału Komunikacji
+</footer>
+
+</body>
+</html>

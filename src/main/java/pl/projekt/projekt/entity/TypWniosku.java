@@ -4,5 +4,5 @@ public enum TypWniosku {
     REJESTRACJA,
     CZASOWA,
     WYREJESTROWANIE,
-    ZBYCIE_NABYCIE
+    ZBYCIE
 }
