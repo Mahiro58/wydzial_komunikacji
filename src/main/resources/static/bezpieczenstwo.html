@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Bezpieczeństwo systemu</title>
+</head>
+<body>
+
+<h1>Bezpieczeństwo systemu</h1>
+
+<p>Zalogowany jako administrator: <strong id="email"></strong></p>
+
+<hr>
+
+<h2>Informacje bezpieczeństwa</h2>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Obszar</th>
+        <th>Status</th>
+        <th>Opis</th>
+    </tr>
+
+    <tr>
+        <td>Role użytkowników</td>
+        <td>AKTYWNE</td>
+        <td>System obsługuje role USER, URZEDNIK oraz ADMIN.</td>
+    </tr>
+
+    <tr>
+        <td>Hasła</td>
+        <td>ZABEZPIECZONE</td>
+        <td>Hasła użytkowników są zapisywane jako hash BCrypt.</td>
+    </tr>
+
+    <tr>
+        <td>Panel użytkownika</td>
+        <td>CHRONIONY</td>
+        <td>Dostęp tylko dla zalogowanego użytkownika.</td>
+    </tr>
+
+    <tr>
+        <td>Panel urzędnika</td>
+        <td>CHRONIONY</td>
+        <td>Dostęp tylko dla roli URZEDNIK lub ADMIN.</td>
+    </tr>
+
+    <tr>
+        <td>Panel administratora</td>
+        <td>CHRONIONY</td>
+        <td>Dostęp tylko dla roli ADMIN.</td>
+    </tr>
+
+    <tr>
+        <td>WebSocket</td>
+        <td>AKTYWNY</td>
+        <td>System wysyła powiadomienia o zmianie statusu wniosku.</td>
+    </tr>
+
+    <tr>
+        <td>Swagger</td>
+        <td>WŁĄCZONY W DEV</td>
+        <td>Dokumentacja API jest dostępna w trybie developerskim.</td>
+    </tr>
+
+    <tr>
+        <td>Spring Security</td>
+        <td>TRYB DEV</td>
+        <td>Endpointy są aktualnie dopuszczone przez konfigurację developerską.</td>
+    </tr>
+
+    <tr>
+        <td>Upload dokumentów</td>
+        <td>AKTYWNY</td>
+        <td>Dokumenty są zapisywane na serwerze i powiązane z wnioskiem.</td>
+    </tr>
+</table>
+
+<h2>Szybkie linki</h2>
+
+<button onclick="location.href='/zarzadzanie-uzytkownikami.html'">
+    Zarządzanie użytkownikami
+</button>
+
+<button onclick="location.href='/urzednik-panel.html'">
+    Panel urzędnika
+</button>
+
+<button onclick="location.href='/swagger-ui.html'">
+    Swagger
+</button>
+
+<br><br>
+
+<a href="/admin-panel.html">Powrót do panelu admina</a>
+
+<script>
+    const rola = localStorage.getItem("rola");
+    const email = localStorage.getItem("email");
+
+    if (rola !== "ADMIN") {
+        alert("Brak dostępu do bezpieczeństwa systemu");
+        window.location.href = "/index.html";
+    }
+
+    document.getElementById("email").innerText = email ?? "";
+</script>
+
+</body>
+</html>
