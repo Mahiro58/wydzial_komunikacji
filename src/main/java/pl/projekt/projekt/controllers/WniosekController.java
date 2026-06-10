@@ -99,6 +99,10 @@ public class WniosekController {
                     ));
         }
 
+        if (!Boolean.TRUE.equals(req.oplacono)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wniosek może zostać wysłany tylko po oznaczeniu opłaty");
+        }
+
         WniosekEnt w = new WniosekEnt();
 
         w.setTyp(req.typ);
@@ -212,6 +216,15 @@ public class WniosekController {
         if (oldStatus == newStatus) {
             log.info("PATCH /wniosek/{}/status - status bez zmian ({})", id, newStatus);
             return ResponseEntity.ok(w);
+        }
+
+        if (newStatus == StatusWniosku.ZATWIERDZONY
+                && !Boolean.TRUE.equals(w.getOplacono())) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Nie można zatwierdzić wniosku — opłata nie została oznaczona jako opłacona"
+            );
         }
 
         try {

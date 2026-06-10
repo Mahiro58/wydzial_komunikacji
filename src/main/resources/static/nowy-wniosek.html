@@ -180,6 +180,11 @@
             return;
         }
 
+        if (!document.getElementById("oplacono").checked) {
+            document.getElementById("msg").innerText = "Aby wysłać wniosek, musisz oznaczyć opłatę jako opłaconą.";
+            return;
+        }
+
         if (typ === "REJESTRACJA" || typ === "CZASOWA") {
             const vin = document.getElementById("vin").value.trim();
             const marka = document.getElementById("marka").value.trim();
