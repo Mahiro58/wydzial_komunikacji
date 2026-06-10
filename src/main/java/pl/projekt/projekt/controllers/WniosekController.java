@@ -1,8 +1,5 @@
 package pl.projekt.projekt.controllers;
 
-// import io.swagger.v3.oas.annotations.Operation;
-// import io.swagger.v3.oas.annotations.Parameter;
-// import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,15 +14,13 @@ import pl.projekt.projekt.entity.*;
 import pl.projekt.projekt.repo.*;
 import pl.projekt.projekt.ws.WniosekStatusEvent;
 
+import java.time.Year;
 import java.util.List;
 
 @RestController
 @RequestMapping("/wniosek")
 @CrossOrigin
-@Tag(
-        name = "Wnioski",
-        description = "Obsługa wniosków: tworzenie oraz odczyt danych i zapytań testowych"
-)
+@Tag(name = "Wnioski")
 public class WniosekController {
 
     private static final Logger log = LogManager.getLogger(WniosekController.class);
@@ -61,7 +56,10 @@ public class WniosekController {
         }
 
         if (req.uzytkownikId == null || req.typ == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Pola uzytkownikId oraz typ są wymagane");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Pola uzytkownikId oraz typ są wymagane"
+            );
         }
 
         UzytkownikEnt u = uzytkownikRepo.findById(req.uzytkownikId)
@@ -74,7 +72,10 @@ public class WniosekController {
 
         if (req.typ == TypWniosku.WYREJESTROWANIE || req.typ == TypWniosku.ZBYCIE) {
             if (req.pojazdId == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dla tego typu wniosku wymagane jest pojazdId");
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Dla tego typu wniosku wymagane jest pojazdId"
+                );
             }
 
             p = pojazdRepo.findById(req.pojazdId)
@@ -85,17 +86,7 @@ public class WniosekController {
         }
 
         if (req.typ == TypWniosku.REJESTRACJA || req.typ == TypWniosku.CZASOWA) {
-            if (req.vin == null || req.vin.isBlank()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "VIN jest wymagany");
-            }
-
-            if (req.marka == null || req.marka.isBlank()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Marka jest wymagana");
-            }
-
-            if (req.model == null || req.model.isBlank()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Model jest wymagany");
-            }
+            walidujDaneNowegoPojazdu(req);
         }
 
         UrzednikEnt urz = null;
@@ -116,7 +107,7 @@ public class WniosekController {
         w.setPojazd(p);
         w.setUrzednik(urz);
 
-        w.setVin(req.vin);
+        w.setVin(req.vin != null ? req.vin.trim().toUpperCase() : null);
         w.setMarka(req.marka);
         w.setModel(req.model);
         w.setRok(req.rok);
@@ -151,7 +142,10 @@ public class WniosekController {
         try {
             newStatus = StatusWniosku.valueOf(status);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Niepoprawny status: " + status);
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Niepoprawny status: " + status
+            );
         }
 
         StatusWniosku oldStatus = w.getStatus();
@@ -164,26 +158,21 @@ public class WniosekController {
         try {
             if (newStatus == StatusWniosku.ZATWIERDZONY
                     && w.getPojazd() == null
-                    && (w.getTyp() == TypWniosku.REJESTRACJA || w.getTyp() == TypWniosku.CZASOWA)) {
+                    && (w.getTyp() == TypWniosku.REJESTRACJA
+                    || w.getTyp() == TypWniosku.CZASOWA)) {
 
-                if (w.getVin() == null || w.getVin().isBlank()) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nie można utworzyć pojazdu: brak VIN");
-                }
-
-                if (w.getMarka() == null || w.getMarka().isBlank()) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nie można utworzyć pojazdu: brak marki");
-                }
-
-                if (w.getModel() == null || w.getModel().isBlank()) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nie można utworzyć pojazdu: brak modelu");
-                }
+                walidujDaneWnioskuPrzedUtworzeniemPojazdu(w);
 
                 if (pojazdRepo.existsByVin(w.getVin())) {
-                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Pojazd o takim VIN już istnieje");
+                    throw new ResponseStatusException(
+                            HttpStatus.CONFLICT,
+                            "Pojazd o takim VIN już istnieje"
+                    );
                 }
 
                 PojazdEnt pojazd = new PojazdEnt();
-                pojazd.setVin(w.getVin());
+
+                pojazd.setVin(w.getVin().trim().toUpperCase());
                 pojazd.setMarka(w.getMarka());
                 pojazd.setModel(w.getModel());
                 pojazd.setRok(w.getRok());
@@ -193,13 +182,22 @@ public class WniosekController {
                 PojazdEnt zapisanyPojazd = pojazdRepo.save(pojazd);
                 w.setPojazd(zapisanyPojazd);
 
-                log.info("Utworzono pojazd id={} dla wniosku id={}", zapisanyPojazd.getId(), w.getId());
+                log.info(
+                        "Utworzono pojazd id={} dla wniosku id={}",
+                        zapisanyPojazd.getId(),
+                        w.getId()
+                );
             }
 
-            if (newStatus == StatusWniosku.ZATWIERDZONY && (w.getTyp() == TypWniosku.WYREJESTROWANIE || w.getTyp() == TypWniosku.ZBYCIE)) {
+            if (newStatus == StatusWniosku.ZATWIERDZONY
+                    && (w.getTyp() == TypWniosku.WYREJESTROWANIE
+                    || w.getTyp() == TypWniosku.ZBYCIE)) {
 
                 if (w.getPojazd() == null) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brak pojazdu do wyrejestrowania");
+                    throw new ResponseStatusException(
+                            HttpStatus.BAD_REQUEST,
+                            "Brak pojazdu do usunięcia"
+                    );
                 }
 
                 Long pojazdId = w.getPojazd().getId();
@@ -211,9 +209,16 @@ public class WniosekController {
 
                 pojazdRepo.deleteById(pojazdId);
 
-                log.info("Wyrejestrowano pojazd id={} dla wniosku id={}", pojazdId, w.getId());
+                log.info(
+                        "Usunięto pojazd id={} dla wniosku id={}",
+                        pojazdId,
+                        w.getId()
+                );
 
-                ws.convertAndSend("/topic/wniosek/events", new WniosekStatusEvent(id, oldStatus, newStatus));
+                ws.convertAndSend(
+                        "/topic/wniosek/events",
+                        new WniosekStatusEvent(id, oldStatus, newStatus)
+                );
 
                 return ResponseEntity.ok(saved);
             }
@@ -222,24 +227,50 @@ public class WniosekController {
 
             WniosekEnt saved = wniosekRepo.save(w);
 
-            log.info("Zmieniono status wniosku id={} z {} na {}", id, oldStatus, newStatus);
+            log.info(
+                    "Zmieniono status wniosku id={} z {} na {}",
+                    id,
+                    oldStatus,
+                    newStatus
+            );
 
-            ws.convertAndSend("/topic/wniosek/events", new WniosekStatusEvent(id, oldStatus, newStatus));
+            ws.convertAndSend(
+                    "/topic/wniosek/events",
+                    new WniosekStatusEvent(id, oldStatus, newStatus)
+            );
 
             return ResponseEntity.ok(saved);
 
         } catch (DataIntegrityViolationException e) {
-            log.error("PATCH /wniosek/{}/status - naruszenie integralności danych: {}", id, e.getMessage(), e);
+            log.error(
+                    "PATCH /wniosek/{}/status - naruszenie integralności danych: {}",
+                    id,
+                    e.getMessage(),
+                    e
+            );
+
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Nie można zmienić statusu wniosku: konflikt danych lub naruszenie ograniczeń bazy.",
                     e
             );
+
         } catch (ResponseStatusException e) {
             throw e;
+
         } catch (Exception e) {
-            log.error("PATCH /wniosek/{}/status - nieoczekiwany błąd: {}", id, e.getMessage(), e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Błąd serwera podczas zmiany statusu", e);
+            log.error(
+                    "PATCH /wniosek/{}/status - nieoczekiwany błąd: {}",
+                    id,
+                    e.getMessage(),
+                    e
+            );
+
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Błąd serwera podczas zmiany statusu",
+                    e
+            );
         }
     }
 
@@ -253,6 +284,91 @@ public class WniosekController {
     public ResponseEntity<List<WniosekEnt>> getZlozone() {
         log.info("GET /wniosek/status/zlozony - pobieranie wniosków o statusie ZLOZONY");
         return ResponseEntity.ok(wniosekRepo.findZlozoneNative());
+    }
+
+    private void walidujDaneNowegoPojazdu(WniosekCreateRequest req) {
+        if (req.vin == null || req.vin.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "VIN jest wymagany");
+        }
+
+        if (req.vin.trim().length() != 17) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "VIN musi mieć dokładnie 17 znaków"
+            );
+        }
+
+        if (req.marka == null || req.marka.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Marka jest wymagana");
+        }
+
+        if (req.model == null || req.model.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Model jest wymagany");
+        }
+
+        int aktualnyRok = Year.now().getValue();
+
+        if (req.rok == null || req.rok < 1900 || req.rok > aktualnyRok + 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Niepoprawny rok produkcji"
+            );
+        }
+
+        if (Boolean.TRUE.equals(req.zachowajNumer)
+                && (req.numerRejestracyjny == null || req.numerRejestracyjny.isBlank())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Zaznaczono zachowanie numeru, ale nie podano dotychczasowego numeru"
+            );
+        }
+
+        if ("INDYWIDUALNE".equals(req.typTablic)
+                && (req.numerIndywidualny == null || req.numerIndywidualny.isBlank())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Dla tablic indywidualnych wymagany jest własny numer rejestracyjny"
+            );
+        }
+    }
+
+    private void walidujDaneWnioskuPrzedUtworzeniemPojazdu(WniosekEnt w) {
+        if (w.getVin() == null || w.getVin().isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Nie można utworzyć pojazdu: brak VIN"
+            );
+        }
+
+        if (w.getVin().trim().length() != 17) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Nie można utworzyć pojazdu: VIN musi mieć dokładnie 17 znaków"
+            );
+        }
+
+        if (w.getMarka() == null || w.getMarka().isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Nie można utworzyć pojazdu: brak marki"
+            );
+        }
+
+        if (w.getModel() == null || w.getModel().isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Nie można utworzyć pojazdu: brak modelu"
+            );
+        }
+
+        int aktualnyRok = Year.now().getValue();
+
+        if (w.getRok() == null || w.getRok() < 1900 || w.getRok() > aktualnyRok + 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Nie można utworzyć pojazdu: niepoprawny rok produkcji"
+            );
+        }
     }
 
     private String wyznaczNumerRejestracyjny(WniosekEnt w) {

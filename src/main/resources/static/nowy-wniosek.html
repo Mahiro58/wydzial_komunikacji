@@ -166,6 +166,54 @@
 
         const typ = document.getElementById("typ").value;
 
+        if (!typ) {
+            document.getElementById("msg").innerText = "Wybierz typ wniosku.";
+            return;
+        }
+
+        if (typ === "REJESTRACJA" || typ === "CZASOWA") {
+            const vin = document.getElementById("vin").value.trim();
+            const marka = document.getElementById("marka").value.trim();
+            const model = document.getElementById("model").value.trim();
+            const rok = document.getElementById("rok").value;
+            const typTablic = document.getElementById("typTablic").value;
+            const zachowajNumer = document.getElementById("zachowajNumer").checked;
+            const numerRejestracyjny = document.getElementById("numerRejestracyjny").value.trim();
+            const numerIndywidualny = document.getElementById("numerIndywidualny").value.trim();
+
+            if (vin.length !== 17) {
+                document.getElementById("msg").innerText = "VIN musi mieć dokładnie 17 znaków.";
+                return;
+            }
+
+            if (!marka) {
+                document.getElementById("msg").innerText = "Podaj markę pojazdu.";
+                return;
+            }
+
+            if (!model) {
+                document.getElementById("msg").innerText = "Podaj model pojazdu.";
+                return;
+            }
+
+            if (!rok || Number(rok) < 1900 || Number(rok) > new Date().getFullYear() + 1) {
+                document.getElementById("msg").innerText = "Podaj poprawny rok produkcji.";
+                return;
+            }
+
+            if (zachowajNumer && !numerRejestracyjny) {
+                document.getElementById("msg").innerText =
+                    "Zaznaczono zachowanie numeru, ale nie podano dotychczasowego numeru.";
+                return;
+            }
+
+            if (typTablic === "INDYWIDUALNE" && !numerIndywidualny) {
+                document.getElementById("msg").innerText =
+                    "Dla tablic indywidualnych wpisz własny numer.";
+                return;
+            }
+        }
+
         const pojazdSelect =
             document.getElementById("pojazdId");
 
