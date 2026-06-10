@@ -178,7 +178,8 @@ public class WniosekController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<WniosekEnt> changeStatus(
             @PathVariable Long id,
-            @RequestParam("status") String status
+            @RequestParam("status") String status,
+            @RequestParam(value = "komentarz", required = false) String komentarz
     ) {
         log.info("PATCH /wniosek/{}/status - status={}", id, status);
 
@@ -187,6 +188,15 @@ public class WniosekController {
                         HttpStatus.NOT_FOUND,
                         "Nie ma wniosku id=" + id
                 ));
+
+        StatusWniosku oldStatus = w.getStatus();
+
+        if (oldStatus == StatusWniosku.ZATWIERDZONY) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Nie można zmieniać statusu zatwierdzonego wniosku"
+            );
+        }
 
         StatusWniosku newStatus;
 
@@ -199,14 +209,16 @@ public class WniosekController {
             );
         }
 
-        StatusWniosku oldStatus = w.getStatus();
-
         if (oldStatus == newStatus) {
             log.info("PATCH /wniosek/{}/status - status bez zmian ({})", id, newStatus);
             return ResponseEntity.ok(w);
         }
 
         try {
+            if (komentarz != null) {
+                w.setKomentarzUrzednika(komentarz);
+            }
+
             if (newStatus == StatusWniosku.ZATWIERDZONY
                     && w.getPojazd() == null
                     && (w.getTyp() == TypWniosku.REJESTRACJA
@@ -254,6 +266,7 @@ public class WniosekController {
                 Long pojazdId = w.getPojazd().getId();
 
                 w.setPojazd(null);
+                w.setKomentarzUrzednika(komentarz);
                 w.setStatus(newStatus);
 
                 WniosekEnt saved = wniosekRepo.save(w);
@@ -274,6 +287,7 @@ public class WniosekController {
                 return ResponseEntity.ok(saved);
             }
 
+            w.setKomentarzUrzednika(komentarz);
             w.setStatus(newStatus);
 
             WniosekEnt saved = wniosekRepo.save(w);

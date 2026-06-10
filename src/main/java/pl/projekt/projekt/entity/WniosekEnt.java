@@ -38,6 +38,7 @@ public class WniosekEnt {
     private String numerIndywidualny;
     private Integer kwotaOplaty = 0;
     private Boolean oplacono = false;
+    private String komentarzUrzednika;
 
     @Column(name = "data_zlozenia", nullable = false)
     private LocalDateTime dataZlozenia;

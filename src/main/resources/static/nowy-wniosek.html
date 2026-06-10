@@ -279,10 +279,12 @@
                 document.getElementById("numerIndywidualny")?.value || null,
 
             powodWyrejestrowania:
-                document.getElementById("powodWyrejestrowania")?.value || null
-        };
+                document.getElementById("powodWyrejestrowania")?.value || null,
 
-        console.log("Wysyłam wniosek:", data);
+            kwotaOplaty: parseInt(document.getElementById("oplata").innerText.replace(" zł", "")) || 0,
+
+            oplacono: document.getElementById("oplacono").checked};
+                console.log("Wysyłam wniosek:", data);
 
         const response = await fetch("/wniosek", {
             method: "POST",

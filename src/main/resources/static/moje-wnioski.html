@@ -27,6 +27,7 @@
         <th>Status</th>
         <th>Data złożenia</th>
         <th>Opis</th>
+        <th>Informacja od urzędnika</th>
         <th>Akcja</th>
     </tr>
     </thead>
@@ -83,11 +84,24 @@
                         ? "<br><strong style='color:red'>Wymaga poprawy</strong>"
                         : ""
                     }
+                    ${
+                        w.status === "ZATWIERDZONY"
+                        ? "<br><strong style='color:green'>Zatwierdzony</strong>"
+                        : ""
+                    }
                 </td>
 
                 <td>${w.dataZlozenia ?? "-"}</td>
 
                 <td>${w.opis ?? ""}</td>
+
+                <td>
+                    ${
+                        w.komentarzUrzednika
+                        ? w.komentarzUrzednika
+                        : "-"
+                    }
+                </td>
 
                 <td>
                     ${
