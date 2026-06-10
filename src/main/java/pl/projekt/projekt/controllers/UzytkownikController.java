@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import pl.projekt.projekt.entity.UzytkownikEnt;
 import pl.projekt.projekt.repo.UzytkownikRepo;
+import pl.projekt.projekt.controllers.dto.AktualizacjaKontaktuRequest;
+import pl.projekt.projekt.entity.Rola;
 
 import java.util.List;
 
@@ -45,6 +47,37 @@ public class UzytkownikController {
         List<UzytkownikEnt> res = repo.findAll();
         log.debug("GET /uzytkownik - liczba rekordów: {}", res.size());
         return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UzytkownikEnt> getById(@PathVariable Long id) {
+        UzytkownikEnt user = repo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Nie znaleziono użytkownika o id=" + id
+                ));
+
+        return ResponseEntity.ok(user);
+    }
+
+    @PutMapping("/{id}/kontakt")
+    public ResponseEntity<UzytkownikEnt> updateContact(
+            @PathVariable Long id,
+            @RequestBody AktualizacjaKontaktuRequest request
+    ) {
+        UzytkownikEnt user = repo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie znaleziono użytkownika o id=" + id));
+
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email jest wymagany");
+        }
+
+        user.setEmail(request.getEmail());
+        user.setTelefon(request.getTelefon());
+
+        UzytkownikEnt saved = repo.save(user);
+
+        return ResponseEntity.ok(saved);
     }
 
     // POST /uzytkownik
@@ -93,6 +126,32 @@ public class UzytkownikController {
             log.error("POST /uzytkownik - nieoczekiwany błąd zapisu: {}", e.getMessage(), e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Błąd serwera podczas zapisu użytkownika", e);
         }
+    }
+
+    @PatchMapping("/{id}/rola")
+    public ResponseEntity<UzytkownikEnt> zmienRole(@PathVariable Long id, @RequestParam("rola") String rola) {
+        UzytkownikEnt user = repo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Nie znaleziono użytkownika o id=" + id
+                ));
+
+        Rola nowaRola;
+
+        try {
+            nowaRola = Rola.valueOf(rola);
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Niepoprawna rola: " + rola
+            );
+        }
+
+        user.setRola(nowaRola);
+
+        UzytkownikEnt saved = repo.save(user);
+
+        return ResponseEntity.ok(saved);
     }
 
     // DELETE /uzytkownik/{id}

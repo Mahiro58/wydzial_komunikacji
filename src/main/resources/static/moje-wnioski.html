@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moje wnioski</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/layout.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js" defer></script>
+    <script src="/js/moje-wnioski.js" defer></script>
+</head>
+<body>
+
+<header class="app-header">
+    <nav class="navbar">
+        <a href="/index.html" class="brand">
+            <img src="/images/logo.svg" alt="Logo Wydziału Komunikacji" class="logo">
+
+            <div class="brand-text">
+                <span class="brand-title">Aplikacja Wydziału Komunikacji</span>
+                <span class="brand-subtitle">e-Urząd • Rejestracja pojazdów</span>
+            </div>
+        </a>
+
+        <button class="hamburger" id="hamburgerBtn" type="button">☰</button>
+
+        <div class="nav-links" id="navLinks">
+            <a href="/index.html">Strona główna</a>
+            <a href="/user-panel.html" data-auth="true">Panel użytkownika</a>
+            <a href="/urzednik-panel.html" data-auth="true" data-role="URZEDNIK">Panel urzędnika</a>
+            <a href="/admin-panel.html" data-auth="true" data-role="ADMIN">Panel administratora</a>
+
+            <span class="user-info" id="userInfo"></span>
+            <button id="logoutBtn" type="button" data-auth="true">Wyloguj</button>
+        </div>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="card panel-user">
+        <span class="badge">USER</span>
+
+        <h1>Moje wnioski</h1>
+
+        <p class="lead">
+            Lista Twoich wniosków oraz aktualnych statusów spraw.
+        </p>
+    </section>
+
+    <section class="card">
+        <h2>Powiadomienia</h2>
+
+        <div id="powiadomienie" class="alert alert-warning">
+            Brak nowych powiadomień
+        </div>
+
+        <div class="actions">
+            <button class="btn" type="button" onclick="pobierzWnioski()">
+                Odśwież
+            </button>
+
+            <a href="/user-panel.html" class="btn btn-outline">
+                Powrót do panelu
+            </a>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Lista wniosków</h2>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Typ</th>
+                    <th>Status</th>
+                    <th>Data złożenia</th>
+                    <th>Opis</th>
+                    <th>Informacja od urzędnika</th>
+                    <th>Akcja</th>
+                </tr>
+                </thead>
+
+                <tbody id="tabela"></tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer class="footer">
+    © 2026 Aplikacja Wydziału Komunikacji
+</footer>
+
+</body>
+</html>

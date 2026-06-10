@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Popraw wniosek</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/layout.js" defer></script>
+    <script src="/js/popraw-wniosek.js" defer></script>
+</head>
+<body>
+
+<header class="app-header">
+    <nav class="navbar">
+        <a href="/index.html" class="brand">
+            <img src="/images/logo.svg" alt="Logo Wydziału Komunikacji" class="logo">
+            <div class="brand-text">
+                <span class="brand-title">Aplikacja Wydziału Komunikacji</span>
+                <span class="brand-subtitle">e-Urząd • Rejestracja pojazdów</span>
+            </div>
+        </a>
+
+        <button class="hamburger" id="hamburgerBtn" type="button">☰</button>
+
+        <div class="nav-links" id="navLinks">
+            <a href="/index.html">Strona główna</a>
+            <a href="/user-panel.html" data-auth="true">Panel użytkownika</a>
+            <a href="/urzednik-panel.html" data-auth="true" data-role="URZEDNIK">Panel urzędnika</a>
+            <a href="/admin-panel.html" data-auth="true" data-role="ADMIN">Panel administratora</a>
+
+            <span class="user-info" id="userInfo"></span>
+            <button id="logoutBtn" type="button" data-auth="true">Wyloguj</button>
+        </div>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="card panel-user">
+        <span class="badge">DO POPRAWY</span>
+        <h1>Popraw wniosek</h1>
+        <p id="info" class="lead"></p>
+    </section>
+
+    <section id="komentarzUrzednikaBox" class="card alert-error" style="display:none;">
+        <h2>Informacja od urzędnika</h2>
+        <p id="komentarzUrzednika"></p>
+    </section>
+
+    <section class="card">
+        <h2>Dane wniosku</h2>
+
+        <label for="opis">Opis</label>
+        <textarea id="opis" rows="5"></textarea>
+    </section>
+
+    <section class="card">
+        <h2>Dane pojazdu</h2>
+
+        <div class="grid grid-2">
+            <div>
+                <label for="rodzajPojazdu">Rodzaj pojazdu</label>
+                <input id="rodzajPojazdu">
+            </div>
+
+            <div>
+                <label for="przeznaczenie">Przeznaczenie</label>
+                <input id="przeznaczenie">
+            </div>
+
+            <div>
+                <label for="marka">Marka</label>
+                <input id="marka">
+            </div>
+
+            <div>
+                <label for="model">Model</label>
+                <input id="model">
+            </div>
+
+            <div>
+                <label for="rok">Rok</label>
+                <input id="rok" type="number">
+            </div>
+
+            <div>
+                <label for="vin">VIN</label>
+                <input id="vin" maxlength="17">
+            </div>
+
+            <div>
+                <label for="numerRejestracyjny">Numer rejestracyjny</label>
+                <input id="numerRejestracyjny">
+            </div>
+
+            <div>
+                <label for="dataNabycia">Data nabycia</label>
+                <input id="dataNabycia" type="date">
+            </div>
+
+            <div>
+                <label for="typTablic">Typ tablic</label>
+                <select id="typTablic">
+                    <option value="ZWYCZAJNE">Zwyczajne</option>
+                    <option value="INDYWIDUALNE">Indywidualne</option>
+                    <option value="ZMNIEJSZONE">Zmniejszone</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="numerIndywidualny">Numer indywidualny</label>
+                <input id="numerIndywidualny">
+            </div>
+        </div>
+
+        <div style="margin-top:16px;">
+            <label>
+                <input type="checkbox" id="zachowajNumer">
+                Zachowaj dotychczasowy numer
+            </label>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Dosłanie dokumentów</h2>
+
+        <div class="grid grid-2">
+            <div>
+                <label for="plikDowodWlasnosci">Dowód własności</label>
+                <input type="file" id="plikDowodWlasnosci" accept=".pdf,.jpg,.jpeg,.png">
+            </div>
+
+            <div>
+                <label for="plikDowodRejestracyjny">Dowód rejestracyjny</label>
+                <input type="file" id="plikDowodRejestracyjny" accept=".pdf,.jpg,.jpeg,.png">
+            </div>
+
+            <div>
+                <label for="plikKartaPojazdu">Karta pojazdu</label>
+                <input type="file" id="plikKartaPojazdu" accept=".pdf,.jpg,.jpeg,.png">
+            </div>
+
+            <div>
+                <label for="plikPolisaOc">Polisa OC</label>
+                <input type="file" id="plikPolisaOc" accept=".pdf,.jpg,.jpeg,.png">
+            </div>
+
+            <div>
+                <label for="plikPotwierdzenieOplat">Potwierdzenie opłat</label>
+                <input type="file" id="plikPotwierdzenieOplat" accept=".pdf,.jpg,.jpeg,.png">
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <p id="msg" class="alert hidden"></p>
+
+        <div class="actions">
+            <button class="btn" type="button" onclick="zapiszPoprawke()">
+                Zapisz poprawkę
+            </button>
+
+            <a href="/moje-wnioski.html" class="btn btn-outline">
+                Powrót
+            </a>
+        </div>
+    </section>
+</main>
+
+<footer class="footer">
+    © 2026 Aplikacja Wydziału Komunikacji
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel urzędnika</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/layout.js" defer></script>
+    <script src="/js/urzednik-panel.js" defer></script>
+</head>
+<body>
+
+<header class="app-header">
+    <nav class="navbar">
+        <a href="/index.html" class="brand">
+            <img src="/images/logo.svg" alt="Logo Wydziału Komunikacji" class="logo">
+
+            <div class="brand-text">
+                <span class="brand-title">
+                    Aplikacja Wydziału Komunikacji
+                </span>
+
+                <span class="brand-subtitle">
+                    e-Urząd • Rejestracja pojazdów
+                </span>
+            </div>
+        </a>
+
+        <button class="hamburger" id="hamburgerBtn" type="button">
+            ☰
+        </button>
+
+        <div class="nav-links" id="navLinks">
+            <a href="/index.html">
+                Strona główna
+            </a>
+
+            <a href="/user-panel.html" data-auth="true">
+                Panel użytkownika
+            </a>
+
+            <a href="/urzednik-panel.html" data-auth="true" data-role="URZEDNIK">
+                Panel urzędnika
+            </a>
+
+            <a href="/admin-panel.html" data-auth="true" data-role="ADMIN">
+                Panel administratora
+            </a>
+
+            <span class="user-info" id="userInfo"></span>
+
+            <button id="logoutBtn" type="button" data-auth="true">
+                Wyloguj
+            </button>
+        </div>
+    </nav>
+</header>
+
+<main class="container">
+
+    <section class="card panel-urzednik">
+        <span class="badge">URZĘDNIK</span>
+
+        <h1>Panel urzędnika</h1>
+
+        <p class="lead">
+            Przeglądaj wnioski, sprawdzaj dokumenty oraz zmieniaj status spraw.
+        </p>
+    </section>
+
+    <section class="card">
+        <h2>Filtrowanie i akcje</h2>
+
+        <div class="grid grid-2">
+
+            <div>
+                <label for="filtr">
+                    Filtruj wnioski
+                </label>
+
+                <input
+                    id="filtr"
+                    placeholder="ID, email, typ, status, VIN..."
+                    oninput="filtrujWnioski()"
+                >
+            </div>
+
+            <div style="display:flex; align-items:flex-end;">
+                <button
+                    class="btn"
+                    type="button"
+                    onclick="pobierzWnioski()"
+                >
+                    Odśwież listę
+                </button>
+            </div>
+
+        </div>
+
+        <p id="msg" class="alert hidden"></p>
+    </section>
+
+    <section class="card">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <h2>Lista wniosków</h2>
+
+            <span class="badge">
+                Widok kart
+            </span>
+        </div>
+
+        <div id="tabela" class="requests-list"></div>
+
+        <div class="actions" style="margin-top:24px;">
+            <a href="/user-panel.html" class="btn btn-outline">
+                Powrót
+            </a>
+        </div>
+
+    </section>
+
+</main>
+
+<footer class="footer">
+    © 2026 Aplikacja Wydziału Komunikacji
+</footer>
+
+</body>
+</html>
