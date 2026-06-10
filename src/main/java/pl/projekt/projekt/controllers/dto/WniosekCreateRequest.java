@@ -50,4 +50,6 @@ public class WniosekCreateRequest {
     public String typTablic;
     public Boolean zachowajNumer;
     public String numerIndywidualny;
+    public Integer kwotaOplaty;
+    public Boolean oplacono;
 }

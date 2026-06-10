@@ -118,11 +118,33 @@ public class WniosekController {
         w.setTypTablic(req.typTablic);
         w.setZachowajNumer(req.zachowajNumer);
         w.setNumerIndywidualny(req.numerIndywidualny);
+        w.setKwotaOplaty(req.kwotaOplaty != null ? req.kwotaOplaty : 0);
+
+        w.setOplacono(Boolean.TRUE.equals(req.oplacono));
 
         WniosekEnt saved = wniosekRepo.save(w);
 
         return ResponseEntity.ok(saved);
     }
+
+    @PatchMapping("/{id}/oplacono")
+        public ResponseEntity<WniosekEnt> zmienPlatnosc(
+                @PathVariable Long id,
+                @RequestParam("oplacono") Boolean oplacono
+        ) {
+
+            WniosekEnt w = wniosekRepo.findById(id)
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Nie znaleziono wniosku"
+                    ));
+
+            w.setOplacono(oplacono);
+
+            WniosekEnt saved = wniosekRepo.save(w);
+
+            return ResponseEntity.ok(saved);
+        }
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<WniosekEnt> changeStatus(

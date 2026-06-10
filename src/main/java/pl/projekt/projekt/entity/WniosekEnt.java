@@ -36,6 +36,8 @@ public class WniosekEnt {
     private String typTablic;
     private Boolean zachowajNumer;
     private String numerIndywidualny;
+    private Integer kwotaOplaty = 0;
+    private Boolean oplacono = false;
 
     @Column(name = "data_zlozenia", nullable = false)
     private LocalDateTime dataZlozenia;
