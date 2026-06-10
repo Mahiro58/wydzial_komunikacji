@@ -127,24 +127,53 @@ public class WniosekController {
         return ResponseEntity.ok(saved);
     }
 
-    @PatchMapping("/{id}/oplacono")
-        public ResponseEntity<WniosekEnt> zmienPlatnosc(
-                @PathVariable Long id,
-                @RequestParam("oplacono") Boolean oplacono
-        ) {
+    @PutMapping("/{id}/popraw")
+    public ResponseEntity<WniosekEnt> poprawWniosek(
+            @PathVariable Long id,
+            @RequestBody WniosekCreateRequest req
+    ) {
+        WniosekEnt w = wniosekRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Nie znaleziono wniosku id=" + id
+                ));
 
-            WniosekEnt w = wniosekRepo.findById(id)
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.NOT_FOUND,
-                            "Nie znaleziono wniosku"
-                    ));
-
-            w.setOplacono(oplacono);
-
-            WniosekEnt saved = wniosekRepo.save(w);
-
-            return ResponseEntity.ok(saved);
+        if (w.getStatus() != StatusWniosku.DO_POPRAWY) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Poprawiać można tylko wniosek ze statusem DO_POPRAWY"
+            );
         }
+
+        w.setOpis(req.opis);
+
+        w.setVin(req.vin != null ? req.vin.trim().toUpperCase() : null);
+        w.setMarka(req.marka);
+        w.setModel(req.model);
+        w.setRok(req.rok);
+        w.setNumerRejestracyjny(req.numerRejestracyjny);
+        w.setRodzajPojazdu(req.rodzajPojazdu);
+        w.setPrzeznaczenie(req.przeznaczenie);
+        w.setDataNabycia(req.dataNabycia);
+        w.setTypTablic(req.typTablic);
+        w.setZachowajNumer(req.zachowajNumer);
+        w.setNumerIndywidualny(req.numerIndywidualny);
+
+        w.setStatus(StatusWniosku.ZLOZONY);
+
+        WniosekEnt saved = wniosekRepo.save(w);
+
+        ws.convertAndSend(
+                "/topic/wniosek/events",
+                new WniosekStatusEvent(
+                        id,
+                        StatusWniosku.DO_POPRAWY,
+                        StatusWniosku.ZLOZONY
+                )
+        );
+
+        return ResponseEntity.ok(saved);
+    }
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<WniosekEnt> changeStatus(

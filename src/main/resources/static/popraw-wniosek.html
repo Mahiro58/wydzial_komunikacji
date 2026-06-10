@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Popraw wniosek</title>
+</head>
+<body>
+
+<h1>Popraw wniosek</h1>
+
+<p id="info"></p>
+
+<label>Opis:</label><br>
+<textarea id="opis" rows="5" cols="40"></textarea><br><br>
+
+<h3>Dane pojazdu</h3>
+
+<label>Rodzaj pojazdu:</label><br>
+<input id="rodzajPojazdu"><br><br>
+
+<label>Przeznaczenie:</label><br>
+<input id="przeznaczenie"><br><br>
+
+<label>Marka:</label><br>
+<input id="marka"><br><br>
+
+<label>Model:</label><br>
+<input id="model"><br><br>
+
+<label>Rok:</label><br>
+<input id="rok" type="number"><br><br>
+
+<label>VIN:</label><br>
+<input id="vin" maxlength="17"><br><br>
+
+<label>Numer rejestracyjny:</label><br>
+<input id="numerRejestracyjny"><br><br>
+
+<label>Data nabycia:</label><br>
+<input id="dataNabycia" type="date"><br><br>
+
+<label>Typ tablic:</label><br>
+<select id="typTablic">
+    <option value="ZWYCZAJNE">Zwyczajne</option>
+    <option value="INDYWIDUALNE">Indywidualne</option>
+    <option value="ZMNIEJSZONE">Zmniejszone</option>
+</select><br><br>
+
+<label>
+    <input type="checkbox" id="zachowajNumer">
+    Zachowaj dotychczasowy numer
+</label><br><br>
+
+<label>Numer indywidualny:</label><br>
+<input id="numerIndywidualny"><br><br>
+
+<button onclick="zapiszPoprawke()">Zapisz poprawkę</button>
+
+<p id="msg"></p>
+
+<br>
+<a href="/moje-wnioski.html">Powrót</a>
+
+<script>
+    const userId = localStorage.getItem("userId");
+
+    if (!userId) {
+        window.location.href = "/login.html";
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const wniosekId = params.get("id");
+
+    let aktualnyWniosek = null;
+
+    async function pobierzWniosek() {
+        const response = await fetch("/wniosek/uzytkownik/" + userId);
+
+        if (!response.ok) {
+            document.getElementById("msg").innerText =
+                "Nie udało się pobrać wniosku.";
+            return;
+        }
+
+        const wnioski = await response.json();
+
+        aktualnyWniosek = wnioski.find(w => String(w.id) === String(wniosekId));
+
+        if (!aktualnyWniosek) {
+            document.getElementById("msg").innerText =
+                "Nie znaleziono wniosku.";
+            return;
+        }
+
+        if (aktualnyWniosek.status !== "DO_POPRAWY") {
+            document.getElementById("msg").innerText =
+                "Ten wniosek nie jest oznaczony jako DO POPRAWY.";
+            return;
+        }
+
+        document.getElementById("info").innerText =
+            "Poprawiasz wniosek ID: " + aktualnyWniosek.id + ", typ: " + aktualnyWniosek.typ;
+
+        document.getElementById("opis").value = aktualnyWniosek.opis ?? "";
+        document.getElementById("rodzajPojazdu").value = aktualnyWniosek.rodzajPojazdu ?? "";
+        document.getElementById("przeznaczenie").value = aktualnyWniosek.przeznaczenie ?? "";
+        document.getElementById("marka").value = aktualnyWniosek.marka ?? "";
+        document.getElementById("model").value = aktualnyWniosek.model ?? "";
+        document.getElementById("rok").value = aktualnyWniosek.rok ?? "";
+        document.getElementById("vin").value = aktualnyWniosek.vin ?? "";
+        document.getElementById("numerRejestracyjny").value = aktualnyWniosek.numerRejestracyjny ?? "";
+        document.getElementById("dataNabycia").value = aktualnyWniosek.dataNabycia ?? "";
+        document.getElementById("typTablic").value = aktualnyWniosek.typTablic ?? "ZWYCZAJNE";
+        document.getElementById("zachowajNumer").checked = aktualnyWniosek.zachowajNumer === true;
+        document.getElementById("numerIndywidualny").value = aktualnyWniosek.numerIndywidualny ?? "";
+    }
+
+    async function zapiszPoprawke() {
+        if (!aktualnyWniosek) {
+            return;
+        }
+
+        const data = {
+            typ: aktualnyWniosek.typ,
+            uzytkownikId: Number(userId),
+            pojazdId: aktualnyWniosek.pojazd?.id ?? null,
+
+            opis: document.getElementById("opis").value,
+            urzednikId: null,
+
+            vin: document.getElementById("vin").value || null,
+            marka: document.getElementById("marka").value || null,
+            model: document.getElementById("model").value || null,
+            rok: document.getElementById("rok").value
+                ? Number(document.getElementById("rok").value)
+                : null,
+
+            numerRejestracyjny: document.getElementById("numerRejestracyjny").value || null,
+            rodzajPojazdu: document.getElementById("rodzajPojazdu").value || null,
+            przeznaczenie: document.getElementById("przeznaczenie").value || null,
+            dataNabycia: document.getElementById("dataNabycia").value || null,
+
+            typTablic: document.getElementById("typTablic").value || null,
+            zachowajNumer: document.getElementById("zachowajNumer").checked,
+            numerIndywidualny: document.getElementById("numerIndywidualny").value || null
+        };
+
+        const response = await fetch("/wniosek/" + wniosekId + "/popraw", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            document.getElementById("msg").innerText =
+                "Wniosek poprawiony i ponownie wysłany do urzędu.";
+
+            setTimeout(() => {
+                window.location.href = "/moje-wnioski.html";
+            }, 1000);
+        } else {
+            const error = await response.text();
+
+            document.getElementById("msg").innerText =
+                "Błąd poprawy wniosku: " + error;
+        }
+    }
+
+    pobierzWniosek();
+</script>
+
+</body>
+</html>

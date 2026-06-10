@@ -94,11 +94,20 @@
 
     <h3>Dokumenty</h3>
 
-    <label><input type="checkbox" id="dowodWlasnosci"> Dowód własności</label><br>
-    <label><input type="checkbox" id="dowodRejestracyjny"> Dowód rejestracyjny</label><br>
-    <label><input type="checkbox" id="kartaPojazdu"> Karta pojazdu</label><br>
-    <label><input type="checkbox" id="polisaOc"> Polisa OC</label><br>
-    <label><input type="checkbox" id="potwierdzenieOplat"> Potwierdzenie opłat</label><br>
+    <label>Dowód własności:</label><br>
+    <input type="file" id="plikDowodWlasnosci"><br><br>
+
+    <label>Dowód rejestracyjny:</label><br>
+    <input type="file" id="plikDowodRejestracyjny"><br><br>
+
+    <label>Karta pojazdu:</label><br>
+    <input type="file" id="plikKartaPojazdu"><br><br>
+
+    <label>Polisa OC:</label><br>
+    <input type="file" id="plikPolisaOc"><br><br>
+
+    <label>Potwierdzenie opłat:</label><br>
+    <input type="file" id="plikPotwierdzenieOplat"><br><br>
 
     <div id="sekcjaTablice" style="display:none;">
         <h3>Tablice rejestracyjne</h3>
@@ -284,15 +293,19 @@
         });
 
         if (response.ok) {
+
             const saved = await response.json();
+
+            await wyslijDokumenty(saved.id);
 
             document.getElementById("msg").innerText =
                 "Wniosek złożony. ID: "
                 + saved.id
                 + ", status: "
                 + saved.status;
+        }
 
-        } else {
+        else {
 
             const error = await response.text();
 
@@ -327,6 +340,48 @@
 
             select.appendChild(option);
         });
+    }
+
+    async function wyslijDokumenty(wniosekId) {
+
+        const formData = new FormData();
+
+        dodajPlik(formData, "plikDowodWlasnosci", "DOWOD_WLASNOSCI");
+        dodajPlik(formData, "plikDowodRejestracyjny", "DOWOD_REJESTRACYJNY");
+        dodajPlik(formData, "plikKartaPojazdu", "KARTA_POJAZDU");
+        dodajPlik(formData, "plikPolisaOc", "POLISA_OC");
+        dodajPlik(formData, "plikPotwierdzenieOplat", "POTWIERDZENIE_OPLAT");
+
+        if (!formData.has("files")) {
+            console.log("Brak dokumentów do wysłania");
+            return;
+        }
+
+        const response = await fetch(
+            "/dokumenty/wniosek/" + wniosekId,
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+        if (!response.ok) {
+            const error = await response.text();
+
+            document.getElementById("msg").innerText =
+                "Wniosek zapisany, ale dokumenty nie zostały wysłane: "
+                + error;
+        }
+    }
+
+    function dodajPlik(formData, inputId, typDokumentu) {
+
+        const input = document.getElementById(inputId);
+
+        if (input.files.length > 0) {
+            formData.append("files", input.files[0]);
+            formData.append("typy", typDokumentu);
+        }
     }
 
     function obliczOplate() {

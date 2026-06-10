@@ -8,9 +8,18 @@
 
 <h1>Panel urzędnika</h1>
 
-<button onclick="pobierzWnioski()">
-    Odśwież listę
-</button>
+<button onclick="pobierzWnioski()">Odśwież listę</button>
+
+<br><br>
+
+<label>Filtruj wnioski:</label><br>
+<input
+        id="filtr"
+        placeholder="ID, email, typ, status, VIN..."
+        oninput="filtrujWnioski()"
+>
+
+<br><br>
 
 <table border="1" cellpadding="8">
     <thead>
@@ -19,13 +28,21 @@
         <th>Typ</th>
         <th>Status</th>
         <th>Użytkownik</th>
-        <th>Pojazd</th>
-        <th>Akcja</th>
+        <th>Dane pojazdu</th>
+        <th>Płatność</th>
+        <th>Dokumenty</th>
+        <th>Opis</th>
+        <th>Decyzja</th>
     </tr>
     </thead>
 
     <tbody id="tabela"></tbody>
 </table>
+
+<p id="msg"></p>
+
+<br>
+<a href="/user-panel.html">Powrót</a>
 
 <script>
     const rola = localStorage.getItem("rola");
@@ -34,28 +51,75 @@
         alert("Brak dostępu do panelu urzędnika");
         window.location.href = "/index.html";
     }
-    
-    async function pobierzWnioski() {
 
+    let wszystkieWnioski = [];
+
+    async function pobierzWnioski() {
         const response = await fetch("/wniosek");
 
-        const wnioski = await response.json();
+        if (!response.ok) {
+            document.getElementById("msg").innerText =
+                "Nie udało się pobrać wniosków.";
+            return;
+        }
 
+        wszystkieWnioski = await response.json();
+        renderujTabele(wszystkieWnioski);
+    }
+
+    function renderujTabele(wnioski) {
         const tabela = document.getElementById("tabela");
-
         tabela.innerHTML = "";
 
         wnioski.forEach(w => {
-
             const row = document.createElement("tr");
+
+            const u = w.uzytkownik;
+            const p = w.pojazd;
+            const dokumentyId = `dokumenty-${w.id}`;
+
+            const daneUzytkownika = `
+                ${u?.imie ?? ""} ${u?.nazwisko ?? ""}<br>
+                Email: ${u?.email ?? "-"}<br>
+                Telefon: ${u?.telefon ?? "-"}
+            `;
+
+            const danePojazdu = p
+                ? `
+                    <strong>Istniejący pojazd</strong><br>
+                    Marka: ${p.marka ?? "-"}<br>
+                    Model: ${p.model ?? "-"}<br>
+                    VIN: ${p.vin ?? "-"}<br>
+                    Rok: ${p.rok ?? "-"}<br>
+                    Nr rej.: ${p.numerRejestracyjny ?? "-"}
+                `
+                : `
+                    <strong>Dane z wniosku</strong><br>
+                    Marka: ${w.marka ?? "-"}<br>
+                    Model: ${w.model ?? "-"}<br>
+                    VIN: ${w.vin ?? "-"}<br>
+                    Rok: ${w.rok ?? "-"}<br>
+                    Rodzaj: ${w.rodzajPojazdu ?? "-"}<br>
+                    Przeznaczenie: ${w.przeznaczenie ?? "-"}<br>
+                    Dotychczasowy nr: ${w.numerRejestracyjny ?? "-"}<br>
+                    Typ tablic: ${w.typTablic ?? "-"}<br>
+                    Własny nr: ${w.numerIndywidualny ?? "-"}
+                `;
+
+            const platnosc = `
+                Kwota: ${w.kwotaOplaty ?? 0} zł<br>
+                Status: ${w.oplacono ? "ZAPŁACONO" : "NIEOPŁACONO"}
+            `;
 
             row.innerHTML = `
                 <td>${w.id}</td>
                 <td>${w.typ}</td>
                 <td>${w.status}</td>
-                <td>${w.uzytkownik?.email ?? "-"}</td>
-                <td>${w.pojazd?.marka ?? "-"} ${w.pojazd?.model ?? ""}</td>
-
+                <td>${daneUzytkownika}</td>
+                <td>${danePojazdu}</td>
+                <td>${platnosc}</td>
+                <td id="${dokumentyId}">Ładowanie...</td>
+                <td>${w.opis ?? ""}</td>
                 <td>
                     <select id="status-${w.id}">
                         <option value="ZLOZONY">ZŁOŻONY</option>
@@ -65,8 +129,10 @@
                         <option value="ODRZUCONY">ODRZUCONY</option>
                     </select>
 
+                    <br><br>
+
                     <button onclick="zmienStatus(${w.id})">
-                        Zapisz
+                        Zapisz status
                     </button>
                 </td>
             `;
@@ -74,13 +140,68 @@
             tabela.appendChild(row);
 
             document.getElementById(`status-${w.id}`).value = w.status;
+
+            pobierzDokumenty(w.id);
         });
     }
 
-    async function zmienStatus(id) {
+    async function pobierzDokumenty(wniosekId) {
+        const cell = document.getElementById(`dokumenty-${wniosekId}`);
 
-        const status =
-            document.getElementById(`status-${id}`).value;
+        if (!cell) return;
+
+        const response = await fetch(`/dokumenty/wniosek/${wniosekId}`);
+
+        if (!response.ok) {
+            cell.innerHTML = "Błąd pobierania dokumentów";
+            return;
+        }
+
+        const dokumenty = await response.json();
+
+        if (dokumenty.length === 0) {
+            cell.innerHTML = "Brak dokumentów";
+            return;
+        }
+
+        cell.innerHTML = dokumenty.map(d => `
+            <strong>${d.typDokumentu ?? "DOKUMENT"}</strong><br>
+            ${d.nazwaPliku ?? "plik"}<br>
+            <a href="/dokumenty/${d.id}/download" target="_blank">
+                Pobierz
+            </a>
+            <br><br>
+        `).join("");
+    }
+
+    function filtrujWnioski() {
+        const filtr = document.getElementById("filtr")
+            .value
+            .toLowerCase()
+            .trim();
+
+        const wynik = wszystkieWnioski.filter(w => {
+            return (
+                String(w.id).includes(filtr)
+                || (w.typ ?? "").toLowerCase().includes(filtr)
+                || (w.status ?? "").toLowerCase().includes(filtr)
+                || (w.uzytkownik?.email ?? "").toLowerCase().includes(filtr)
+                || (w.uzytkownik?.imie ?? "").toLowerCase().includes(filtr)
+                || (w.uzytkownik?.nazwisko ?? "").toLowerCase().includes(filtr)
+                || (w.vin ?? "").toLowerCase().includes(filtr)
+                || (w.marka ?? "").toLowerCase().includes(filtr)
+                || (w.model ?? "").toLowerCase().includes(filtr)
+                || (w.pojazd?.vin ?? "").toLowerCase().includes(filtr)
+                || (w.pojazd?.marka ?? "").toLowerCase().includes(filtr)
+                || (w.pojazd?.model ?? "").toLowerCase().includes(filtr)
+            );
+        });
+
+        renderujTabele(wynik);
+    }
+
+    async function zmienStatus(id) {
+        const status = document.getElementById(`status-${id}`).value;
 
         const response = await fetch(
             `/wniosek/${id}/status?status=${status}`,
@@ -90,10 +211,16 @@
         );
 
         if (response.ok) {
-            alert("Status zmieniony");
-            pobierzWnioski();
+            document.getElementById("msg").innerText =
+                "Status został zmieniony.";
+
+            await pobierzWnioski();
+            filtrujWnioski();
         } else {
-            alert("Błąd zmiany statusu");
+            const error = await response.text();
+
+            document.getElementById("msg").innerText =
+                "Błąd zmiany statusu: " + error;
         }
     }
 

@@ -7,11 +7,17 @@
 <body>
 
 <h1>Moje wnioski</h1>
-<div id="powiadomienie" style="border:1px solid #999; padding:10px; margin:10px 0;">
+
+<div id="powiadomienie"
+     style="border:1px solid #999; padding:10px; margin:10px 0;">
     Brak nowych powiadomień
 </div>
 
-<button onclick="pobierzWnioski()">Odśwież</button>
+<button onclick="pobierzWnioski()">
+    Odśwież
+</button>
+
+<br><br>
 
 <table border="1" cellpadding="8">
     <thead>
@@ -21,16 +27,21 @@
         <th>Status</th>
         <th>Data złożenia</th>
         <th>Opis</th>
+        <th>Akcja</th>
     </tr>
     </thead>
+
     <tbody id="tabela"></tbody>
 </table>
 
 <br>
-<a href="/user-panel.html">Powrót do panelu</a>
+<a href="/user-panel.html">
+    Powrót do panelu
+</a>
 
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
 <script>
     const userId = localStorage.getItem("userId");
 
@@ -39,7 +50,9 @@
     }
 
     async function pobierzWnioski() {
-        const response = await fetch("/wniosek/uzytkownik/" + userId);
+
+        const response =
+            await fetch("/wniosek/uzytkownik/" + userId);
 
         if (!response.ok) {
             alert("Nie udało się pobrać wniosków");
@@ -47,48 +60,95 @@
         }
 
         const wnioski = await response.json();
-        const tabela = document.getElementById("tabela");
+
+        const tabela =
+            document.getElementById("tabela");
 
         tabela.innerHTML = "";
 
         wnioski.forEach(w => {
-            const row = document.createElement("tr");
+
+            const row =
+                document.createElement("tr");
 
             row.innerHTML = `
                 <td>${w.id}</td>
+
                 <td>${w.typ}</td>
-                <td>${w.status}</td>
-                <td>${w.dataZlozenia}</td>
+
+                <td>
+                    ${w.status}
+                    ${
+                        w.status === "DO_POPRAWY"
+                        ? "<br><strong style='color:red'>Wymaga poprawy</strong>"
+                        : ""
+                    }
+                </td>
+
+                <td>${w.dataZlozenia ?? "-"}</td>
+
                 <td>${w.opis ?? ""}</td>
+
+                <td>
+                    ${
+                        w.status === "DO_POPRAWY"
+                        ? `
+                            <button
+                                onclick="przejdzDoPoprawy(${w.id})">
+                                Popraw
+                            </button>
+                          `
+                        : "-"
+                    }
+                </td>
             `;
 
             tabela.appendChild(row);
         });
     }
 
-    pobierzWnioski();
-    
+    function przejdzDoPoprawy(id) {
+        window.location.href =
+            "/popraw-wniosek.html?id=" + id;
+    }
+
     function polaczWebSocket() {
-    const socket = new SockJS("/my-websocket");
-    const stompClient = Stomp.over(socket);
 
-    stompClient.connect({}, function () {
-        console.log("Połączono z WebSocket");
+        const socket =
+            new SockJS("/my-websocket");
 
-        stompClient.subscribe("/topic/wniosek/events", function (message) {
-            const event = JSON.parse(message.body);
+        const stompClient =
+            Stomp.over(socket);
 
-            document.getElementById("powiadomienie").innerText =
-                "🔔 Zmieniono status wniosku ID " + event.wniosekId +
-                " z " + event.oldStatus +
-                " na " + event.newStatus;
+        stompClient.connect({}, function () {
 
-            pobierzWnioski();
+            console.log("Połączono z WebSocket");
+
+            stompClient.subscribe(
+                "/topic/wniosek/events",
+                function (message) {
+
+                    const event =
+                        JSON.parse(message.body);
+
+                    document.getElementById(
+                        "powiadomienie"
+                    ).innerText =
+                        "🔔 Zmieniono status wniosku ID "
+                        + event.wniosekId
+                        + " z "
+                        + event.oldStatus
+                        + " na "
+                        + event.newStatus;
+
+                    pobierzWnioski();
+                }
+            );
         });
-    });
-}
+    }
 
-polaczWebSocket();
+    pobierzWnioski();
+    polaczWebSocket();
 </script>
 
 </body>
