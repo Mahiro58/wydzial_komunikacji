@@ -2,481 +2,233 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nowy wniosek</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/layout.js" defer></script>
+    <script src="/js/nowy-wniosek.js" defer></script>
 </head>
 <body>
 
-<h1>Złóż nowy wniosek</h1>
+<header class="app-header">
+    <nav class="navbar">
+        <a href="/index.html" class="brand">
+            <img src="/images/logo.svg" alt="Logo Wydziału Komunikacji" class="logo">
+            <div class="brand-text">
+                <span class="brand-title">Aplikacja Wydziału Komunikacji</span>
+                <span class="brand-subtitle">e-Urząd • Rejestracja pojazdów</span>
+            </div>
+        </a>
 
-<form onsubmit="zlozWniosek(event)">
+        <button class="hamburger" id="hamburgerBtn" type="button">☰</button>
 
-    <br><br>
+        <div class="nav-links" id="navLinks">
+            <a href="/index.html">Strona główna</a>
+            <a href="/user-panel.html" data-auth="true">Panel użytkownika</a>
+            <a href="/urzednik-panel.html" data-auth="true" data-role="URZEDNIK">Panel urzędnika</a>
+            <a href="/admin-panel.html" data-auth="true" data-role="ADMIN">Panel administratora</a>
 
-    <label>Typ wniosku:</label><br>
-    <select id="typ" required onchange="pokazPolaDlaTypu(); obliczOplate();">
-        <option value="">-- wybierz typ wniosku --</option>
-        <option value="REJESTRACJA">Rejestracja pojazdu</option>
-        <option value="CZASOWA">Czasowa rejestracja</option>
-        <option value="WYREJESTROWANIE">Wyrejestrowanie pojazdu</option>
-        <option value="ZBYCIE">Zgłoszenie zbycia pojazdu</option>
-    </select>
-    <br><br>
-
-    <label>Opis:</label><br>
-    <textarea id="opis" rows="5" cols="40"></textarea>
-    <br><br>
-
-    <div id="sekcjaWyborPojazdu" style="display:none;">
-        <h3>Wybierz pojazd</h3>
-
-        <label>Twój pojazd:</label><br>
-        <select id="pojazdId">
-            <option value="">-- wybierz pojazd --</option>
-        </select>
-        <br><br>
-    </div>
-
-    <div id="sekcjaDanePojazdu" style="display:none;">
-        <h3>Dane pojazdu</h3>
-
-        <label>Rodzaj pojazdu:</label><br>
-        <input id="rodzajPojazdu"><br><br>
-
-        <label>Przeznaczenie pojazdu:</label><br>
-        <input id="przeznaczenie"><br><br>
-
-        <label>Marka:</label><br>
-        <input id="marka"><br><br>
-
-        <label>Model:</label><br>
-        <input id="model"><br><br>
-
-        <label>Typ pojazdu:</label><br>
-        <input id="typPojazdu"><br><br>
-
-        <label>Rok produkcji:</label><br>
-        <input id="rok" type="number" min="1900" max="3000"><br><br>
-
-        <label>Numer VIN:</label><br>
-        <input id="vin" maxlength="17"><br><br>
-
-        <label>Dotychczasowy numer rejestracyjny pojazdu:</label><br>
-        <input id="numerRejestracyjny"><br><br>
-
-        <label>Data nabycia / sprowadzenia:</label><br>
-        <input id="dataNabycia" type="date"><br><br>
-    </div>
-
-    <div id="sekcjaWyrejestrowanie" style="display:none;">
-        <h3>Dane do wyrejestrowania</h3>
-
-        <label>Powód wyrejestrowania:</label><br>
-        <select id="powodWyrejestrowania">
-            <option value="">-- wybierz powód --</option>
-            <option value="ZLOMOWANIE">Złomowanie pojazdu</option>
-            <option value="KRADZIEZ">Kradzież pojazdu</option>
-            <option value="WYWOZ_ZA_GRANICE">Wywóz za granicę</option>
-            <option value="TRWALA_UTRATA">Trwała utrata pojazdu</option>
-        </select>
-        <br><br>
-    </div>
-
-    <div id="sekcjaZbycie" style="display:none;">
-        <h3>Dane transakcji</h3>
-
-        <label>Data sprzedaży:</label><br>
-        <input id="dataTransakcji" type="date"><br><br>
-
-        <label>Dane kupującego:</label><br>
-        <textarea id="daneDrugiejStrony"></textarea>
-        <br><br>
-    </div>
-
-    <h3>Dokumenty</h3>
-
-    <label>Dowód własności:</label><br>
-    <input type="file" id="plikDowodWlasnosci" accept=".pdf,.jpg,.jpeg,.png"><br><br>
-
-    <label>Dowód rejestracyjny:</label><br>
-    <input type="file" id="plikDowodRejestracyjny" accept=".pdf,.jpg,.jpeg,.png"><br><br>
-
-    <label>Karta pojazdu:</label><br>
-    <input type="file" id="plikKartaPojazdu" accept=".pdf,.jpg,.jpeg,.png"><br><br>
-
-    <label>Polisa OC:</label><br>
-    <input type="file" id="plikPolisaOc" accept=".pdf,.jpg,.jpeg,.png"><br><br>
-
-    <label>Potwierdzenie opłat:</label><br>
-    <input type="file" id="plikPotwierdzenieOplat" accept=".pdf,.jpg,.jpeg,.png"><br><br>
-
-    <div id="sekcjaTablice" style="display:none;" >
-        <h3>Tablice rejestracyjne</h3>
-
-        <select id="typTablic"
-                onchange="obliczOplate(); pokazNumerIndywidualny();">
-            <option value="ZWYCZAJNE">Zwyczajne</option>
-            <option value="INDYWIDUALNE">Indywidualne</option>
-            <option value="ZMNIEJSZONE">Zmniejszone</option>
-        </select>
-
-        <div id="sekcjaNumerIndywidualny" style="display:none;">
-            <br>
-            <label>Własny numer rejestracyjny:</label><br>
-            <input id="numerIndywidualny" maxlength="12">
+            <span class="user-info" id="userInfo"></span>
+            <button id="logoutBtn" type="button" data-auth="true">Wyloguj</button>
         </div>
-
-        <br><br>
-
-        <label>
-            <input type="checkbox"
-                   id="dodatkowaTablica"
-                   onchange="obliczOplate()">
-            Dodatkowa tablica na bagażnik
-        </label>
-        <br>
-
-        <label>
-            <input type="checkbox"
-                   id="zachowajNumer"
-                   onchange="obliczOplate()">
-            Zachowaj dotychczasowy numer rejestracyjny
-        </label>
-    </div>
-
-    <h3>Opłata</h3>
-    <p>Do zapłaty: <strong id="oplata">0 zł</strong></p>
-
-    <label>
-        <input type="checkbox" id="oplacono">
-        Oznacz jako opłacone
-    </label>
-
-    <br><br>
-
-    <button type="submit">Wyślij wniosek</button>
-</form>
-
-<p id="msg"></p>
-
-<br>
-<a href="/user-panel.html">Powrót do panelu</a>
-
-<script>
-
-    const userId = localStorage.getItem("userId");
-
-    if (!userId) {
-        window.location.href = "/login.html";
-    }
-
-    async function zlozWniosek(event) {
-
-        event.preventDefault();
-
-        const typ = document.getElementById("typ").value;
-
-        if (!typ) {
-            document.getElementById("msg").innerText = "Wybierz typ wniosku.";
-            return;
-        }
-
-        if (!document.getElementById("oplacono").checked) {
-            document.getElementById("msg").innerText = "Aby wysłać wniosek, musisz oznaczyć opłatę jako opłaconą.";
-            return;
-        }
-
-        if (typ === "REJESTRACJA" || typ === "CZASOWA") {
-            const vin = document.getElementById("vin").value.trim();
-            const marka = document.getElementById("marka").value.trim();
-            const model = document.getElementById("model").value.trim();
-            const rok = document.getElementById("rok").value;
-            const typTablic = document.getElementById("typTablic").value;
-            const zachowajNumer = document.getElementById("zachowajNumer").checked;
-            const numerRejestracyjny = document.getElementById("numerRejestracyjny").value.trim();
-            const numerIndywidualny = document.getElementById("numerIndywidualny").value.trim();
-
-            if (vin.length !== 17) {
-                document.getElementById("msg").innerText = "VIN musi mieć dokładnie 17 znaków.";
-                return;
-            }
-
-            if (!marka) {
-                document.getElementById("msg").innerText = "Podaj markę pojazdu.";
-                return;
-            }
-
-            if (!model) {
-                document.getElementById("msg").innerText = "Podaj model pojazdu.";
-                return;
-            }
-
-            if (!rok || Number(rok) < 1900 || Number(rok) > new Date().getFullYear() + 1) {
-                document.getElementById("msg").innerText = "Podaj poprawny rok produkcji.";
-                return;
-            }
-
-            if (zachowajNumer && !numerRejestracyjny) {
-                document.getElementById("msg").innerText =
-                    "Zaznaczono zachowanie numeru, ale nie podano dotychczasowego numeru.";
-                return;
-            }
-
-            if (typTablic === "INDYWIDUALNE" && !numerIndywidualny) {
-                document.getElementById("msg").innerText =
-                    "Dla tablic indywidualnych wpisz własny numer.";
-                return;
-            }
-        }
-
-        const pojazdSelect =
-            document.getElementById("pojazdId");
-
-        const pojazdIdValue =
-            pojazdSelect ? pojazdSelect.value : "";
-
-        if ((typ === "WYREJESTROWANIE" || typ === "ZBYCIE")
-            && !pojazdIdValue) {
-
-            document.getElementById("msg").innerText =
-                "Wybierz pojazd.";
-
-            return;
-        }
-
-        const data = {
-
-            uzytkownikId: Number(userId),
-            pojazdId: pojazdIdValue
-                ? Number(pojazdIdValue)
-                : null,
-
-            typ: typ,
-            opis: document.getElementById("opis").value,
-            urzednikId: null,
-
-            vin: document.getElementById("vin")?.value || null,
-            marka: document.getElementById("marka")?.value || null,
-            model: document.getElementById("model")?.value || null,
-
-            rok: document.getElementById("rok")?.value
-                ? Number(document.getElementById("rok").value)
-                : null,
-
-            numerRejestracyjny:
-                document.getElementById("numerRejestracyjny")?.value || null,
-
-            rodzajPojazdu:
-                document.getElementById("rodzajPojazdu")?.value || null,
-
-            przeznaczenie:
-                document.getElementById("przeznaczenie")?.value || null,
-
-            dataNabycia:
-                document.getElementById("dataNabycia")?.value || null,
-
-            typTablic:
-                document.getElementById("typTablic")?.value || null,
-
-            zachowajNumer:
-                document.getElementById("zachowajNumer")?.checked || false,
-
-            numerIndywidualny:
-                document.getElementById("numerIndywidualny")?.value || null,
-
-            powodWyrejestrowania:
-                document.getElementById("powodWyrejestrowania")?.value || null,
-
-            kwotaOplaty: parseInt(document.getElementById("oplata").innerText.replace(" zł", "")) || 0,
-
-            oplacono: document.getElementById("oplacono").checked};
-                console.log("Wysyłam wniosek:", data);
-
-        const response = await fetch("/wniosek", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (response.ok) {
-
-            const saved = await response.json();
-
-            await wyslijDokumenty(saved.id);
-
-            document.getElementById("msg").innerText =
-                "Wniosek złożony. ID: "
-                + saved.id
-                + ", status: "
-                + saved.status;
-        }
-
-        else {
-
-            const error = await response.text();
-
-            document.getElementById("msg").innerText =
-                "Błąd składania wniosku: " + error;
-        }
-    }
-
-    async function pobierzPojazdy() {
-
-        const response =
-            await fetch("/pojazd/uzytkownik/" + userId);
-
-        const pojazdy =
-            await response.json();
-
-        const select =
-            document.getElementById("pojazdId");
-
-        select.innerHTML =
-            `<option value="">-- wybierz pojazd --</option>`;
-
-        pojazdy.forEach(p => {
-
-            const option =
-                document.createElement("option");
-
-            option.value = p.id;
-
-            option.text =
-                `${p.marka} ${p.model} (${p.numerRejestracyjny ?? "brak nr"})`;
-
-            select.appendChild(option);
-        });
-    }
-
-    async function wyslijDokumenty(wniosekId) {
-
-        const formData = new FormData();
-
-        dodajPlik(formData, "plikDowodWlasnosci", "DOWOD_WLASNOSCI");
-        dodajPlik(formData, "plikDowodRejestracyjny", "DOWOD_REJESTRACYJNY");
-        dodajPlik(formData, "plikKartaPojazdu", "KARTA_POJAZDU");
-        dodajPlik(formData, "plikPolisaOc", "POLISA_OC");
-        dodajPlik(formData, "plikPotwierdzenieOplat", "POTWIERDZENIE_OPLAT");
-
-        if (!formData.has("files")) {
-            console.log("Brak dokumentów do wysłania");
-            return;
-        }
-
-        const response = await fetch(
-            "/dokumenty/wniosek/" + wniosekId,
-            {
-                method: "POST",
-                body: formData
-            }
-        );
-
-        if (!response.ok) {
-            const error = await response.text();
-
-            document.getElementById("msg").innerText =
-                "Wniosek zapisany, ale dokumenty nie zostały wysłane: "
-                + error;
-        }
-    }
-
-    function dodajPlik(formData, inputId, typDokumentu) {
-
-        const input = document.getElementById(inputId);
-
-        if (input.files.length > 0) {
-            formData.append("files", input.files[0]);
-            formData.append("typy", typDokumentu);
-        }
-    }
-
-    function obliczOplate() {
-
-        const typ =
-            document.getElementById("typ").value;
-
-        const typTablic =
-            document.getElementById("typTablic").value;
-
-        const dodatkowaTablica =
-            document.getElementById("dodatkowaTablica").checked;
-
-        const zachowajNumer =
-            document.getElementById("zachowajNumer").checked;
-
-        let oplata = 0;
-
-        if (typ === "REJESTRACJA") oplata = 160;
-        if (typ === "CZASOWA") oplata = 80;
-        if (typ === "WYREJESTROWANIE") oplata = 30;
-        if (typ === "ZBYCIE") oplata = 0;
-
-        if (typ === "REJESTRACJA" || typ === "CZASOWA") {
-
-            if (typTablic === "INDYWIDUALNE") oplata += 1000;
-            if (typTablic === "ZMNIEJSZONE") oplata += 20;
-            if (dodatkowaTablica) oplata += 50;
-            if (zachowajNumer) oplata -= 40;
-        }
-
-        if (oplata < 0) oplata = 0;
-
-        document.getElementById("oplata").innerText =
-            oplata + " zł";
-    }
-
-    function pokazPolaDlaTypu() {
-
-        const typ =
-            document.getElementById("typ").value;
-
-        document.getElementById("sekcjaDanePojazdu").style.display = "none";
-        document.getElementById("sekcjaWyrejestrowanie").style.display = "none";
-        document.getElementById("sekcjaZbycie").style.display = "none";
-        document.getElementById("sekcjaWyborPojazdu").style.display = "none";
-        document.getElementById("sekcjaTablice").style.display = "none";
-
-        if (typ === "REJESTRACJA" || typ === "CZASOWA") {
-            document.getElementById("sekcjaDanePojazdu").style.display = "block";
-            document.getElementById("sekcjaTablice").style.display = "block";
-        }
-
-        if (typ === "WYREJESTROWANIE") {
-            document.getElementById("sekcjaWyborPojazdu").style.display = "block";
-            document.getElementById("sekcjaWyrejestrowanie").style.display = "block";
-        }
-
-        if (typ === "ZBYCIE") {
-            document.getElementById("sekcjaWyborPojazdu").style.display = "block";
-            document.getElementById("sekcjaZbycie").style.display = "block";
-        }
-
-        pokazNumerIndywidualny();
-        obliczOplate();
-    }
-
-    function pokazNumerIndywidualny() {
-
-        const typ =
-            document.getElementById("typ").value;
-
-        const typTablic =
-            document.getElementById("typTablic").value;
-
-        document.getElementById("sekcjaNumerIndywidualny").style.display =
-            (typ === "REJESTRACJA" || typ === "CZASOWA")
-            && typTablic === "INDYWIDUALNE"
-                ? "block"
-                : "none";
-    }
-
-    pobierzPojazdy();
-    obliczOplate();
-    pokazPolaDlaTypu();
-    pokazNumerIndywidualny();
-
-</script>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="card panel-user">
+        <span class="badge">USER</span>
+        <h1>Złóż nowy wniosek</h1>
+        <p class="lead">Wypełnij dane wniosku, dodaj dokumenty i oznacz opłatę jako opłaconą.</p>
+    </section>
+
+    <form onsubmit="zlozWniosek(event)">
+        <section class="card">
+            <h2>Podstawowe informacje</h2>
+
+            <label for="typ">Typ wniosku</label>
+            <select id="typ" required onchange="pokazPolaDlaTypu(); obliczOplate();">
+                <option value="">-- wybierz typ wniosku --</option>
+                <option value="REJESTRACJA">Rejestracja pojazdu</option>
+                <option value="CZASOWA">Czasowa rejestracja</option>
+                <option value="WYREJESTROWANIE">Wyrejestrowanie pojazdu</option>
+                <option value="ZBYCIE">Zgłoszenie zbycia pojazdu</option>
+            </select>
+
+            <label for="opis">Opis</label>
+            <textarea id="opis" rows="5" placeholder="Opisz swoją sprawę"></textarea>
+        </section>
+
+        <section class="card" id="sekcjaWyborPojazdu" style="display:none;">
+            <h2>Wybierz pojazd</h2>
+
+            <label for="pojazdId">Twój pojazd</label>
+            <select id="pojazdId">
+                <option value="">-- wybierz pojazd --</option>
+            </select>
+        </section>
+
+        <section class="card" id="sekcjaDanePojazdu" style="display:none;">
+            <h2>Dane pojazdu</h2>
+
+            <div class="grid grid-2">
+                <div>
+                    <label for="rodzajPojazdu">Rodzaj pojazdu</label>
+                    <input id="rodzajPojazdu">
+                </div>
+
+                <div>
+                    <label for="przeznaczenie">Przeznaczenie pojazdu</label>
+                    <input id="przeznaczenie">
+                </div>
+
+                <div>
+                    <label for="marka">Marka</label>
+                    <input id="marka">
+                </div>
+
+                <div>
+                    <label for="model">Model</label>
+                    <input id="model">
+                </div>
+
+                <div>
+                    <label for="typPojazdu">Typ pojazdu</label>
+                    <input id="typPojazdu">
+                </div>
+
+                <div>
+                    <label for="rok">Rok produkcji</label>
+                    <input id="rok" type="number" min="1900" max="3000">
+                </div>
+
+                <div>
+                    <label for="vin">Numer VIN</label>
+                    <input id="vin" maxlength="17">
+                </div>
+
+                <div>
+                    <label for="numerRejestracyjny">Dotychczasowy numer rejestracyjny</label>
+                    <input id="numerRejestracyjny">
+                </div>
+
+                <div>
+                    <label for="dataNabycia">Data nabycia / sprowadzenia</label>
+                    <input id="dataNabycia" type="date">
+                </div>
+            </div>
+        </section>
+
+        <section class="card" id="sekcjaWyrejestrowanie" style="display:none;">
+            <h2>Dane do wyrejestrowania</h2>
+
+            <label for="powodWyrejestrowania">Powód wyrejestrowania</label>
+            <select id="powodWyrejestrowania">
+                <option value="">-- wybierz powód --</option>
+                <option value="ZLOMOWANIE">Złomowanie pojazdu</option>
+                <option value="KRADZIEZ">Kradzież pojazdu</option>
+                <option value="WYWOZ_ZA_GRANICE">Wywóz za granicę</option>
+                <option value="TRWALA_UTRATA">Trwała utrata pojazdu</option>
+            </select>
+        </section>
+
+        <section class="card" id="sekcjaZbycie" style="display:none;">
+            <h2>Dane transakcji</h2>
+
+            <label for="dataTransakcji">Data sprzedaży</label>
+            <input id="dataTransakcji" type="date">
+
+            <label for="daneDrugiejStrony">Dane kupującego</label>
+            <textarea id="daneDrugiejStrony"></textarea>
+        </section>
+
+        <section class="card">
+            <h2>Dokumenty</h2>
+
+            <div class="grid grid-2">
+                <div>
+                    <label for="plikDowodWlasnosci">Dowód własności</label>
+                    <input type="file" id="plikDowodWlasnosci" accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+
+                <div>
+                    <label for="plikDowodRejestracyjny">Dowód rejestracyjny</label>
+                    <input type="file" id="plikDowodRejestracyjny" accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+
+                <div>
+                    <label for="plikKartaPojazdu">Karta pojazdu</label>
+                    <input type="file" id="plikKartaPojazdu" accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+
+                <div>
+                    <label for="plikPolisaOc">Polisa OC</label>
+                    <input type="file" id="plikPolisaOc" accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+
+                <div>
+                    <label for="plikPotwierdzenieOplat">Potwierdzenie opłat</label>
+                    <input type="file" id="plikPotwierdzenieOplat" accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+            </div>
+        </section>
+
+        <section class="card" id="sekcjaTablice" style="display:none;">
+            <h2>Tablice rejestracyjne</h2>
+
+            <label for="typTablic">Typ tablic</label>
+            <select id="typTablic" onchange="obliczOplate(); pokazNumerIndywidualny();">
+                <option value="ZWYCZAJNE">Zwyczajne</option>
+                <option value="INDYWIDUALNE">Indywidualne</option>
+                <option value="ZMNIEJSZONE">Zmniejszone</option>
+            </select>
+
+            <div id="sekcjaNumerIndywidualny" style="display:none; margin-top:14px;">
+                <label for="numerIndywidualny">Własny numer rejestracyjny</label>
+                <input id="numerIndywidualny" maxlength="12">
+            </div>
+
+            <div style="margin-top:18px;">
+                <label>
+                    <input type="checkbox" id="dodatkowaTablica" onchange="obliczOplate()">
+                    Dodatkowa tablica na bagażnik
+                </label>
+            </div>
+
+            <div>
+                <label>
+                    <input type="checkbox" id="zachowajNumer" onchange="obliczOplate()">
+                    Zachowaj dotychczasowy numer rejestracyjny
+                </label>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Opłata</h2>
+
+            <p class="lead">
+                Do zapłaty: <strong id="oplata">0 zł</strong>
+            </p>
+
+            <label>
+                <input type="checkbox" id="oplacono">
+                Oznacz jako opłacone
+            </label>
+
+            <p id="msg" class="alert hidden"></p>
+
+            <div class="actions" style="margin-top:20px;">
+                <button type="submit" class="btn">Wyślij wniosek</button>
+                <a href="/user-panel.html" class="btn btn-outline">Powrót do panelu</a>
+            </div>
+        </section>
+    </form>
+</main>
+
+<footer class="footer">
+    © 2026 Aplikacja Wydziału Komunikacji
+</footer>
 
 </body>
 </html>

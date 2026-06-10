@@ -2,103 +2,120 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logowanie</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f2f2f2;
-            display: flex;
-            justify-content: center;
-            margin-top: 80px;
-        }
+    <link rel="stylesheet" href="/css/style.css">
 
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            width: 350px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-        }
-
-        input, button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 8px;
-            margin-bottom: 12px;
-            border-radius: 8px;
-        }
-
-        input {
-            border: 1px solid #ccc;
-        }
-
-        button {
-            border: none;
-            background: #0078ff;
-            color: white;
-            cursor: pointer;
-        }
-
-        h2, p {
-            text-align: center;
-        }
-    </style>
+    <script src="/js/layout.js" defer></script>
+    <script src="/js/login.js" defer></script>
 </head>
 <body>
 
-<div class="container">
-    <h2>Logowanie</h2>
+<header class="app-header">
+    <nav class="navbar">
+        <a href="/index.html" class="brand">
+            <img src="/images/logo.svg" alt="Logo Wydziału Komunikacji" class="logo">
 
-    <input id="email" placeholder="Email">
-    <input id="haslo" type="password" placeholder="Hasło">
+            <div class="brand-text">
+                <span class="brand-title">
+                    Aplikacja Wydziału Komunikacji
+                </span>
 
-    <button onclick="login()">Zaloguj</button>
+                <span class="brand-subtitle">
+                    e-Urząd • Rejestracja pojazdów
+                </span>
+            </div>
+        </a>
 
-    <p id="msg"></p>
-</div>
+        <button class="hamburger" id="hamburgerBtn" type="button">
+            ☰
+        </button>
 
-<script>
-    async function login() {
-        const data = {
-            email: document.getElementById("email").value,
-            haslo: document.getElementById("haslo").value
-        };
+        <div class="nav-links" id="navLinks">
+            <a href="/index.html">Strona główna</a>
 
-        const response = await fetch("/auth/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        });
+            <a href="/login.html" data-guest="true">
+                Logowanie
+            </a>
 
-        if (!response.ok) {
-            document.getElementById("msg").innerText = "Błędny email lub hasło";
-            return;
-        }
+            <a href="/register.html" data-guest="true">
+                Rejestracja
+            </a>
 
-        const user = await response.json();
+            <span class="user-info" id="userInfo"></span>
 
-        localStorage.setItem("userId", user.id);
-        localStorage.setItem("email", user.email);
-        localStorage.setItem("rola", user.rola);
+            <button id="logoutBtn" type="button" data-auth="true">
+                Wyloguj
+            </button>
+        </div>
+    </nav>
+</header>
 
-        document.getElementById("msg").innerText = user.komunikat;
+<main class="container">
 
-        if (user.rola === "USER") {
-            window.location.href = "/user-panel.html";
-        }
+    <section class="card" style="max-width: 460px; margin: 60px auto;">
 
-        if (user.rola === "URZEDNIK") {
-            window.location.href = "/urzednik-panel.html";
-        }
+        <div style="text-align: center; margin-bottom: 24px;">
+            <span class="badge">LOGOWANIE</span>
 
-        if (user.rola === "ADMIN") {
-            window.location.href = "/admin-panel.html";
-        }
-    }
-</script>
+            <h1>Zaloguj się</h1>
+
+            <p class="lead">
+                Uzyskaj dostęp do systemu Wydziału Komunikacji
+            </p>
+        </div>
+
+        <form id="loginForm">
+
+            <div>
+                <label for="email">
+                    Adres email
+                </label>
+
+                <input
+                    id="email"
+                    type="email"
+                    placeholder="Wpisz adres email"
+                    required
+                >
+            </div>
+
+            <div>
+                <label for="haslo">
+                    Hasło
+                </label>
+
+                <input
+                    id="haslo"
+                    type="password"
+                    placeholder="Wpisz hasło"
+                    required
+                >
+            </div>
+
+            <button class="btn" type="submit">
+                Zaloguj
+            </button>
+
+            <p id="msg" class="alert hidden"></p>
+
+        </form>
+
+        <div style="text-align:center; margin-top:20px;">
+            Nie masz konta?
+            <a href="/register.html">
+                Zarejestruj się
+            </a>
+        </div>
+
+    </section>
+
+</main>
+
+<footer class="footer">
+    © 2026 Aplikacja Wydziału Komunikacji
+</footer>
 
 </body>
 </html>

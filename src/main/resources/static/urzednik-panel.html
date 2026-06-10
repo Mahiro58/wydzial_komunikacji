@@ -2,260 +2,131 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel urzędnika</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/layout.js" defer></script>
+    <script src="/js/urzednik-panel.js" defer></script>
 </head>
 <body>
 
-<h1>Panel urzędnika</h1>
+<header class="app-header">
+    <nav class="navbar">
+        <a href="/index.html" class="brand">
+            <img src="/images/logo.svg" alt="Logo Wydziału Komunikacji" class="logo">
 
-<button onclick="pobierzWnioski()">Odśwież listę</button>
+            <div class="brand-text">
+                <span class="brand-title">
+                    Aplikacja Wydziału Komunikacji
+                </span>
 
-<br><br>
+                <span class="brand-subtitle">
+                    e-Urząd • Rejestracja pojazdów
+                </span>
+            </div>
+        </a>
 
-<label>Filtruj wnioski:</label><br>
-<input
-        id="filtr"
-        placeholder="ID, email, typ, status, VIN..."
-        oninput="filtrujWnioski()"
->
+        <button class="hamburger" id="hamburgerBtn" type="button">
+            ☰
+        </button>
 
-<br><br>
-
-<table border="1" cellpadding="8">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Typ</th>
-        <th>Status</th>
-        <th>Użytkownik</th>
-        <th>Dane pojazdu</th>
-        <th>Płatność</th>
-        <th>Dokumenty</th>
-        <th>Opis</th>
-        <th>Decyzja</th>
-    </tr>
-    </thead>
-
-    <tbody id="tabela"></tbody>
-</table>
-
-<p id="msg"></p>
-
-<br>
-<a href="/user-panel.html">Powrót</a>
-
-<script>
-    const rola = localStorage.getItem("rola");
-
-    if (rola !== "URZEDNIK" && rola !== "ADMIN") {
-        alert("Brak dostępu do panelu urzędnika");
-        window.location.href = "/index.html";
-    }
-
-    let wszystkieWnioski = [];
-
-    async function pobierzWnioski() {
-        const response = await fetch("/wniosek");
-
-        if (!response.ok) {
-            document.getElementById("msg").innerText =
-                "Nie udało się pobrać wniosków.";
-            return;
-        }
-
-        wszystkieWnioski = await response.json();
-        renderujTabele(wszystkieWnioski);
-    }
-
-    function renderujTabele(wnioski) {
-        const tabela = document.getElementById("tabela");
-        tabela.innerHTML = "";
-
-        wnioski.forEach(w => {
-            const row = document.createElement("tr");
-
-            const u = w.uzytkownik;
-            const p = w.pojazd;
-            const dokumentyId = `dokumenty-${w.id}`;
-
-            const czyZatwierdzony = w.status === "ZATWIERDZONY";
-
-            const daneUzytkownika = `
-                ${u?.imie ?? ""} ${u?.nazwisko ?? ""}<br>
-                Email: ${u?.email ?? "-"}<br>
-                Telefon: ${u?.telefon ?? "-"}
-            `;
-
-            const danePojazdu = p
-                ? `
-                    <strong>Istniejący pojazd</strong><br>
-                    Marka: ${p.marka ?? "-"}<br>
-                    Model: ${p.model ?? "-"}<br>
-                    VIN: ${p.vin ?? "-"}<br>
-                    Rok: ${p.rok ?? "-"}<br>
-                    Nr rej.: ${p.numerRejestracyjny ?? "-"}
-                `
-                : `
-                    <strong>Dane z wniosku</strong><br>
-                    Marka: ${w.marka ?? "-"}<br>
-                    Model: ${w.model ?? "-"}<br>
-                    VIN: ${w.vin ?? "-"}<br>
-                    Rok: ${w.rok ?? "-"}<br>
-                    Rodzaj: ${w.rodzajPojazdu ?? "-"}<br>
-                    Przeznaczenie: ${w.przeznaczenie ?? "-"}<br>
-                    Dotychczasowy nr: ${w.numerRejestracyjny ?? "-"}<br>
-                    Typ tablic: ${w.typTablic ?? "-"}<br>
-                    Własny nr: ${w.numerIndywidualny ?? "-"}
-                `;
-
-            const platnosc = `
-                Kwota: ${w.kwotaOplaty ?? 0} zł<br>
-                Status: ${w.oplacono ? "ZAPŁACONO" : "NIEOPŁACONO"}
-            `;
-
-            row.innerHTML = `
-                <td>${w.id}</td>
-                <td>${w.typ}</td>
-                <td>${w.status}</td>
-                <td>${daneUzytkownika}</td>
-                <td>${danePojazdu}</td>
-                <td>${platnosc}</td>
-                <td id="${dokumentyId}">Ładowanie...</td>
-                <td>${w.opis ?? ""}</td>
-                <td>
-                    <label>Informacja dla użytkownika:</label><br>
-
-                    <textarea
-                        id="komentarz-${w.id}"
-                        rows="4"
-                        cols="25"
-                        ${czyZatwierdzony ? "disabled" : ""}
-                    >${w.komentarzUrzednika ?? ""}</textarea>
-
-                    <br><br>
-
-                    <select
-                        id="status-${w.id}"
-                        ${czyZatwierdzony ? "disabled" : ""}
-                    >
-                        <option value="ZLOZONY">ZŁOŻONY</option>
-                        <option value="W_TRAKCIE">W TRAKCIE</option>
-                        <option value="DO_POPRAWY">DO POPRAWY</option>
-                        <option value="ZATWIERDZONY">ZATWIERDZONY</option>
-                        <option value="ODRZUCONY">ODRZUCONY</option>
-                    </select>
-
-                    <br><br>
-
-                    <button
-                        onclick="zmienStatus(${w.id})"
-                        ${czyZatwierdzony ? "disabled" : ""}
-                    >
-                        Zapisz status
-                    </button>
-
-                    ${
-                        czyZatwierdzony
-                            ? "<br><small>Status zatwierdzony — zablokowany</small>"
-                            : ""
-                    }
-                </td>
-            `;
-
-            tabela.appendChild(row);
-
-            document.getElementById(`status-${w.id}`).value = w.status;
-
-            pobierzDokumenty(w.id);
-        });
-    }
-
-    async function pobierzDokumenty(wniosekId) {
-        const cell = document.getElementById(`dokumenty-${wniosekId}`);
-
-        if (!cell) return;
-
-        const response = await fetch(`/dokumenty/wniosek/${wniosekId}`);
-
-        if (!response.ok) {
-            cell.innerHTML = "Błąd pobierania dokumentów";
-            return;
-        }
-
-        const dokumenty = await response.json();
-
-        if (dokumenty.length === 0) {
-            cell.innerHTML = "Brak dokumentów";
-            return;
-        }
-
-        cell.innerHTML = dokumenty.map(d => `
-            <strong>${d.typDokumentu ?? "DOKUMENT"}</strong><br>
-            ${d.nazwaPliku ?? "plik"}<br>
-            <a href="/dokumenty/${d.id}/download" target="_blank">
-                Pobierz
+        <div class="nav-links" id="navLinks">
+            <a href="/index.html">
+                Strona główna
             </a>
-            <br><br>
-        `).join("");
-    }
 
-    function filtrujWnioski() {
-        const filtr = document.getElementById("filtr")
-            .value
-            .toLowerCase()
-            .trim();
+            <a href="/user-panel.html" data-auth="true">
+                Panel użytkownika
+            </a>
 
-        const wynik = wszystkieWnioski.filter(w => {
-            return (
-                String(w.id).includes(filtr)
-                || (w.typ ?? "").toLowerCase().includes(filtr)
-                || (w.status ?? "").toLowerCase().includes(filtr)
-                || (w.uzytkownik?.email ?? "").toLowerCase().includes(filtr)
-                || (w.uzytkownik?.imie ?? "").toLowerCase().includes(filtr)
-                || (w.uzytkownik?.nazwisko ?? "").toLowerCase().includes(filtr)
-                || (w.vin ?? "").toLowerCase().includes(filtr)
-                || (w.marka ?? "").toLowerCase().includes(filtr)
-                || (w.model ?? "").toLowerCase().includes(filtr)
-                || (w.pojazd?.vin ?? "").toLowerCase().includes(filtr)
-                || (w.pojazd?.marka ?? "").toLowerCase().includes(filtr)
-                || (w.pojazd?.model ?? "").toLowerCase().includes(filtr)
-                || (w.komentarzUrzednika ?? "").toLowerCase().includes(filtr)
-            );
-        });
+            <a href="/urzednik-panel.html" data-auth="true" data-role="URZEDNIK">
+                Panel urzędnika
+            </a>
 
-        renderujTabele(wynik);
-    }
+            <a href="/admin-panel.html" data-auth="true" data-role="ADMIN">
+                Panel administratora
+            </a>
 
-    async function zmienStatus(id) {
-        const status =
-            document.getElementById(`status-${id}`).value;
+            <span class="user-info" id="userInfo"></span>
 
-        const komentarz =
-            document.getElementById(`komentarz-${id}`).value;
+            <button id="logoutBtn" type="button" data-auth="true">
+                Wyloguj
+            </button>
+        </div>
+    </nav>
+</header>
 
-        const response = await fetch(
-            `/wniosek/${id}/status?status=${status}&komentarz=${encodeURIComponent(komentarz)}`,
-            {
-                method: "PATCH"
-            }
-        );
+<main class="container">
 
-        if (response.ok) {
-            document.getElementById("msg").innerText =
-                "Status został zmieniony.";
+    <section class="card panel-urzednik">
+        <span class="badge">URZĘDNIK</span>
 
-            await pobierzWnioski();
-            filtrujWnioski();
-        } else {
-            const error = await response.text();
+        <h1>Panel urzędnika</h1>
 
-            document.getElementById("msg").innerText =
-                "Błąd zmiany statusu: " + error;
-        }
-    }
+        <p class="lead">
+            Przeglądaj wnioski, sprawdzaj dokumenty oraz zmieniaj status spraw.
+        </p>
+    </section>
 
-    pobierzWnioski();
-</script>
+    <section class="card">
+        <h2>Filtrowanie i akcje</h2>
+
+        <div class="grid grid-2">
+
+            <div>
+                <label for="filtr">
+                    Filtruj wnioski
+                </label>
+
+                <input
+                    id="filtr"
+                    placeholder="ID, email, typ, status, VIN..."
+                    oninput="filtrujWnioski()"
+                >
+            </div>
+
+            <div style="display:flex; align-items:flex-end;">
+                <button
+                    class="btn"
+                    type="button"
+                    onclick="pobierzWnioski()"
+                >
+                    Odśwież listę
+                </button>
+            </div>
+
+        </div>
+
+        <p id="msg" class="alert hidden"></p>
+    </section>
+
+    <section class="card">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <h2>Lista wniosków</h2>
+
+            <span class="badge">
+                Widok kart
+            </span>
+        </div>
+
+        <div id="tabela" class="requests-list"></div>
+
+        <div class="actions" style="margin-top:24px;">
+            <a href="/user-panel.html" class="btn btn-outline">
+                Powrót
+            </a>
+        </div>
+
+    </section>
+
+</main>
+
+<footer class="footer">
+    © 2026 Aplikacja Wydziału Komunikacji
+</footer>
 
 </body>
 </html>

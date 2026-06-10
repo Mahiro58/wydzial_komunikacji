@@ -2,45 +2,103 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel użytkownika</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/layout.js" defer></script>
+    <script src="/js/user-panel.js" defer></script>
 </head>
 <body>
 
-<h1>Panel użytkownika</h1>
+<header class="app-header">
+    <nav class="navbar">
+        <a href="/index.html" class="brand">
+            <img src="/images/logo.svg" alt="Logo Wydziału Komunikacji" class="logo">
+            <div class="brand-text">
+                <span class="brand-title">Aplikacja Wydziału Komunikacji</span>
+                <span class="brand-subtitle">e-Urząd • Rejestracja pojazdów</span>
+            </div>
+        </a>
 
-<p>Zalogowany jako: <strong id="email"></strong></p>
-<p>Rola: <strong id="rola"></strong></p>
+        <button class="hamburger" id="hamburgerBtn" type="button">☰</button>
 
-<hr>
+        <div class="nav-links" id="navLinks">
+            <a href="/index.html">Strona główna</a>
+            <a href="/user-panel.html" data-auth="true">Panel użytkownika</a>
+            <a href="/urzednik-panel.html" data-auth="true" data-role="URZEDNIK">Panel urzędnika</a>
+            <a href="/admin-panel.html" data-auth="true" data-role="ADMIN">Panel administratora</a>
 
-<h2>Moje sprawy</h2>
+            <span class="user-info" id="userInfo"></span>
+            <button id="logoutBtn" type="button" data-auth="true">Wyloguj</button>
+        </div>
+    </nav>
+</header>
 
-<button onclick="location.href='/profil.html'">Profil użytkownika</button>
-<button onclick="location.href='/moje-pojazdy.html'">Moje pojazdy</button>
-<button onclick="location.href='/nowy-wniosek.html'">Złóż wniosek</button>
-<button onclick="location.href='/moje-wnioski.html'">Moje wnioski</button>
+<main class="container">
+    <section class="card panel-user">
+        <span class="badge">USER</span>
 
+        <h1>Panel użytkownika</h1>
 
-<hr>
+        <p>
+            Zalogowany jako:
+            <strong id="email"></strong>
+        </p>
 
-<button onclick="logout()">Wyloguj</button>
+        <p>
+            Rola:
+            <strong id="rola"></strong>
+        </p>
+    </section>
 
-<script>
-    const email = localStorage.getItem("email");
-    const rola = localStorage.getItem("rola");
+    <section class="card">
+        <h2>Moje sprawy</h2>
 
-    if (!email) {
-        window.location.href = "/login.html";
-    }
+        <p class="lead">
+            Wybierz moduł, aby zarządzać swoim profilem, pojazdami i wnioskami.
+        </p>
 
-    document.getElementById("email").innerText = email;
-    document.getElementById("rola").innerText = rola;
+        <div class="grid grid-2">
+            <div class="card">
+                <h3>Profil użytkownika</h3>
+                <p>Sprawdź i edytuj swoje dane kontaktowe.</p>
+                <button class="btn" type="button" onclick="location.href='/profil.html'">
+                    Profil użytkownika
+                </button>
+            </div>
 
-    function logout() {
-        localStorage.clear();
-        window.location.href = "/login.html";
-    }
-</script>
+            <div class="card">
+                <h3>Moje pojazdy</h3>
+                <p>Przeglądaj pojazdy przypisane do Twojego konta.</p>
+                <button class="btn btn-secondary" type="button" onclick="location.href='/moje-pojazdy.html'">
+                    Moje pojazdy
+                </button>
+            </div>
+
+            <div class="card">
+                <h3>Złóż wniosek</h3>
+                <p>Utwórz nowy wniosek dotyczący pojazdu.</p>
+                <button class="btn btn-success" type="button" onclick="location.href='/nowy-wniosek.html'">
+                    Złóż wniosek
+                </button>
+            </div>
+
+            <div class="card">
+                <h3>Moje wnioski</h3>
+                <p>Sprawdź status swoich spraw i odpowiedzi urzędu.</p>
+                <button class="btn btn-outline" type="button" onclick="location.href='/moje-wnioski.html'">
+                    Moje wnioski
+                </button>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="footer">
+    © 2026 Aplikacja Wydziału Komunikacji
+</footer>
 
 </body>
 </html>

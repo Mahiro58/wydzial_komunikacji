@@ -2,78 +2,104 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Moje pojazdy</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/layout.js" defer></script>
+    <script src="/js/moje-pojazdy.js" defer></script>
 </head>
 <body>
 
-<h1>Moje pojazdy</h1>
+<header class="app-header">
+    <nav class="navbar">
+        <a href="/index.html" class="brand">
+            <img src="/images/logo.svg" alt="Logo Wydziału Komunikacji" class="logo">
 
-<table border="1" cellpadding="8">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Marka</th>
-        <th>Model</th>
-        <th>Rok</th>
-        <th>VIN</th>
-        <th>Numer rej.</th>
-    </tr>
-    </thead>
+            <div class="brand-text">
+                <span class="brand-title">
+                    Aplikacja Wydziału Komunikacji
+                </span>
 
-    <tbody id="tabela"></tbody>
-</table>
+                <span class="brand-subtitle">
+                    e-Urząd • Rejestracja pojazdów
+                </span>
+            </div>
+        </a>
 
-<br>
-<a href="/user-panel.html">
-    Powrót do panelu
-</a>
+        <button class="hamburger" id="hamburgerBtn" type="button">
+            ☰
+        </button>
 
-<script>
+        <div class="nav-links" id="navLinks">
+            <a href="/index.html">Strona główna</a>
 
-    const userId =
-        localStorage.getItem("userId");
+            <a href="/user-panel.html" data-auth="true">
+                Panel użytkownika
+            </a>
 
-    if (!userId) {
-        window.location.href =
-            "/login.html";
-    }
+            <a href="/urzednik-panel.html" data-auth="true" data-role="URZEDNIK">
+                Panel urzędnika
+            </a>
 
-    async function pobierzPojazdy() {
+            <a href="/admin-panel.html" data-auth="true" data-role="ADMIN">
+                Panel administratora
+            </a>
 
-        const response =
-            await fetch(
-                "/pojazd/uzytkownik/" + userId
-            );
+            <span class="user-info" id="userInfo"></span>
 
-        const pojazdy =
-            await response.json();
+            <button id="logoutBtn" type="button" data-auth="true">
+                Wyloguj
+            </button>
+        </div>
+    </nav>
+</header>
 
-        const tabela =
-            document.getElementById("tabela");
+<main class="container">
 
-        tabela.innerHTML = "";
+    <section class="card panel-user">
+        <span class="badge">USER</span>
 
-        pojazdy.forEach(p => {
+        <h1>Moje pojazdy</h1>
 
-            const row =
-                document.createElement("tr");
+        <p class="lead">
+            Lista pojazdów przypisanych do Twojego konta.
+        </p>
+    </section>
 
-            row.innerHTML = `
-                <td>${p.id}</td>
-                <td>${p.marka}</td>
-                <td>${p.model}</td>
-                <td>${p.rok ?? "-"}</td>
-                <td>${p.vin}</td>
-                <td>${p.numerRejestracyjny ?? "-"}</td>
-            `;
+    <section class="card">
 
-            tabela.appendChild(row);
-        });
-    }
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Marka</th>
+                    <th>Model</th>
+                    <th>Rok</th>
+                    <th>VIN</th>
+                    <th>Numer rej.</th>
+                </tr>
+                </thead>
 
-    pobierzPojazdy();
+                <tbody id="tabela"></tbody>
+            </table>
+        </div>
 
-</script>
+        <div class="actions" style="margin-top: 20px;">
+            <a href="/user-panel.html" class="btn btn-outline">
+                Powrót do panelu
+            </a>
+        </div>
+
+    </section>
+
+</main>
+
+<footer class="footer">
+    © 2026 Aplikacja Wydziału Komunikacji
+</footer>
 
 </body>
 </html>

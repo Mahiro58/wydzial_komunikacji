@@ -2,109 +2,166 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bezpieczeństwo systemu</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/layout.js" defer></script>
+    <script src="/js/bezpieczenstwo.js" defer></script>
 </head>
 <body>
 
-<h1>Bezpieczeństwo systemu</h1>
+<header class="app-header">
+    <nav class="navbar">
+        <a href="/index.html" class="brand">
+            <img src="/images/logo.svg" alt="Logo Wydziału Komunikacji" class="logo">
 
-<p>Zalogowany jako administrator: <strong id="email"></strong></p>
+            <div class="brand-text">
+                <span class="brand-title">
+                    Aplikacja Wydziału Komunikacji
+                </span>
 
-<hr>
+                <span class="brand-subtitle">
+                    e-Urząd • Rejestracja pojazdów
+                </span>
+            </div>
+        </a>
 
-<h2>Informacje bezpieczeństwa</h2>
+        <button class="hamburger" id="hamburgerBtn" type="button">
+            ☰
+        </button>
 
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Obszar</th>
-        <th>Status</th>
-        <th>Opis</th>
-    </tr>
+        <div class="nav-links" id="navLinks">
+            <a href="/index.html">Strona główna</a>
+            <a href="/user-panel.html" data-auth="true">Panel użytkownika</a>
+            <a href="/urzednik-panel.html" data-auth="true" data-role="URZEDNIK">Panel urzędnika</a>
+            <a href="/admin-panel.html" data-auth="true" data-role="ADMIN">Panel administratora</a>
 
-    <tr>
-        <td>Role użytkowników</td>
-        <td>AKTYWNE</td>
-        <td>System obsługuje role USER, URZEDNIK oraz ADMIN.</td>
-    </tr>
+            <a href="/login.html" data-guest="true">Logowanie</a>
+            <a href="/register.html" data-guest="true">Rejestracja</a>
 
-    <tr>
-        <td>Hasła</td>
-        <td>ZABEZPIECZONE</td>
-        <td>Hasła użytkowników są zapisywane jako hash BCrypt.</td>
-    </tr>
+            <span class="user-info" id="userInfo"></span>
 
-    <tr>
-        <td>Panel użytkownika</td>
-        <td>CHRONIONY</td>
-        <td>Dostęp tylko dla zalogowanego użytkownika.</td>
-    </tr>
+            <button id="logoutBtn" type="button" data-auth="true">
+                Wyloguj
+            </button>
+        </div>
+    </nav>
+</header>
 
-    <tr>
-        <td>Panel urzędnika</td>
-        <td>CHRONIONY</td>
-        <td>Dostęp tylko dla roli URZEDNIK lub ADMIN.</td>
-    </tr>
+<main class="container">
 
-    <tr>
-        <td>Panel administratora</td>
-        <td>CHRONIONY</td>
-        <td>Dostęp tylko dla roli ADMIN.</td>
-    </tr>
+    <section class="card panel-admin">
+        <span class="badge">ADMIN</span>
 
-    <tr>
-        <td>WebSocket</td>
-        <td>AKTYWNY</td>
-        <td>System wysyła powiadomienia o zmianie statusu wniosku.</td>
-    </tr>
+        <h1>Bezpieczeństwo systemu</h1>
 
-    <tr>
-        <td>Swagger</td>
-        <td>WŁĄCZONY W DEV</td>
-        <td>Dokumentacja API jest dostępna w trybie developerskim.</td>
-    </tr>
+        <p>
+            Zalogowany jako administrator:
+            <strong id="email"></strong>
+        </p>
+    </section>
 
-    <tr>
-        <td>Spring Security</td>
-        <td>TRYB DEV</td>
-        <td>Endpointy są aktualnie dopuszczone przez konfigurację developerską.</td>
-    </tr>
+    <section class="card">
+        <h2>Informacje bezpieczeństwa</h2>
 
-    <tr>
-        <td>Upload dokumentów</td>
-        <td>AKTYWNY</td>
-        <td>Dokumenty są zapisywane na serwerze i powiązane z wnioskiem.</td>
-    </tr>
-</table>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>Obszar</th>
+                    <th>Status</th>
+                    <th>Opis</th>
+                </tr>
+                </thead>
 
-<h2>Szybkie linki</h2>
+                <tbody>
+                <tr>
+                    <td>Role użytkowników</td>
+                    <td><span class="badge">AKTYWNE</span></td>
+                    <td>System obsługuje role USER, URZEDNIK oraz ADMIN.</td>
+                </tr>
 
-<button onclick="location.href='/zarzadzanie-uzytkownikami.html'">
-    Zarządzanie użytkownikami
-</button>
+                <tr>
+                    <td>Hasła</td>
+                    <td><span class="badge">ZABEZPIECZONE</span></td>
+                    <td>Hasła użytkowników są zapisywane jako hash BCrypt.</td>
+                </tr>
 
-<button onclick="location.href='/urzednik-panel.html'">
-    Panel urzędnika
-</button>
+                <tr>
+                    <td>Panel użytkownika</td>
+                    <td><span class="badge">CHRONIONY</span></td>
+                    <td>Dostęp tylko dla zalogowanego użytkownika.</td>
+                </tr>
 
-<button onclick="location.href='/swagger-ui.html'">
-    Swagger
-</button>
+                <tr>
+                    <td>Panel urzędnika</td>
+                    <td><span class="badge">CHRONIONY</span></td>
+                    <td>Dostęp tylko dla roli URZEDNIK lub ADMIN.</td>
+                </tr>
 
-<br><br>
+                <tr>
+                    <td>Panel administratora</td>
+                    <td><span class="badge">CHRONIONY</span></td>
+                    <td>Dostęp tylko dla roli ADMIN.</td>
+                </tr>
 
-<a href="/admin-panel.html">Powrót do panelu admina</a>
+                <tr>
+                    <td>WebSocket</td>
+                    <td><span class="badge">AKTYWNY</span></td>
+                    <td>System wysyła powiadomienia o zmianie statusu wniosku.</td>
+                </tr>
 
-<script>
-    const rola = localStorage.getItem("rola");
-    const email = localStorage.getItem("email");
+                <tr>
+                    <td>Swagger</td>
+                    <td><span class="badge">DEV</span></td>
+                    <td>Dokumentacja API jest dostępna w trybie developerskim.</td>
+                </tr>
 
-    if (rola !== "ADMIN") {
-        alert("Brak dostępu do bezpieczeństwa systemu");
-        window.location.href = "/index.html";
-    }
+                <tr>
+                    <td>Spring Security</td>
+                    <td><span class="badge">TRYB DEV</span></td>
+                    <td>Endpointy są aktualnie dopuszczone przez konfigurację developerską.</td>
+                </tr>
 
-    document.getElementById("email").innerText = email ?? "";
-</script>
+                <tr>
+                    <td>Upload dokumentów</td>
+                    <td><span class="badge">AKTYWNY</span></td>
+                    <td>Dokumenty są zapisywane na serwerze i powiązane z wnioskiem.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Szybkie linki</h2>
+
+        <div class="actions">
+            <button class="btn" onclick="location.href='/zarzadzanie-uzytkownikami.html'">
+                Zarządzanie użytkownikami
+            </button>
+
+            <button class="btn btn-secondary" onclick="location.href='/urzednik-panel.html'">
+                Panel urzędnika
+            </button>
+
+            <button class="btn btn-outline" onclick="location.href='/swagger-ui.html'">
+                Swagger
+            </button>
+
+            <a href="/admin-panel.html" class="btn btn-danger">
+                Powrót do panelu admina
+            </a>
+        </div>
+    </section>
+
+</main>
+
+<footer class="footer">
+    © 2026 Aplikacja Wydziału Komunikacji
+</footer>
 
 </body>
 </html>

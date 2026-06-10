@@ -2,110 +2,82 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil użytkownika</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/layout.js" defer></script>
+    <script src="/js/profil.js" defer></script>
 </head>
 <body>
 
-<h1>Profil użytkownika</h1>
+<header class="app-header">
+    <nav class="navbar">
+        <a href="/index.html" class="brand">
+            <img src="/images/logo.svg" alt="Logo Wydziału Komunikacji" class="logo">
+            <div class="brand-text">
+                <span class="brand-title">Aplikacja Wydziału Komunikacji</span>
+                <span class="brand-subtitle">e-Urząd • Rejestracja pojazdów</span>
+            </div>
+        </a>
 
-<form onsubmit="zapisz(event)">
+        <button class="hamburger" id="hamburgerBtn" type="button">☰</button>
 
-    <label>Imię:</label><br>
-    <input id="imie" disabled><br><br>
+        <div class="nav-links" id="navLinks">
+            <a href="/index.html">Strona główna</a>
+            <a href="/user-panel.html" data-auth="true">Panel użytkownika</a>
+            <a href="/urzednik-panel.html" data-auth="true" data-role="URZEDNIK">Panel urzędnika</a>
+            <a href="/admin-panel.html" data-auth="true" data-role="ADMIN">Panel administratora</a>
 
-    <label>Nazwisko:</label><br>
-    <input id="nazwisko" disabled><br><br>
+            <span class="user-info" id="userInfo"></span>
+            <button id="logoutBtn" type="button" data-auth="true">Wyloguj</button>
+        </div>
+    </nav>
+</header>
 
-    <label>Email:</label><br>
-    <input id="email" type="email" required><br><br>
+<main class="container">
+    <section class="card panel-user">
+        <span class="badge">USER</span>
+        <h1>Profil użytkownika</h1>
+        <p class="lead">Zarządzaj swoimi danymi kontaktowymi.</p>
+    </section>
 
-    <label>Telefon:</label><br>
-    <input id="telefon"><br><br>
+    <section class="card" style="max-width: 620px;">
+        <form onsubmit="zapisz(event)">
+            <div>
+                <label for="imie">Imię</label>
+                <input id="imie" disabled>
+            </div>
 
-    <button type="submit">
-        Zapisz zmiany
-    </button>
+            <div>
+                <label for="nazwisko">Nazwisko</label>
+                <input id="nazwisko" disabled>
+            </div>
 
-</form>
+            <div>
+                <label for="email">Email</label>
+                <input id="email" type="email" required>
+            </div>
 
-<p id="msg"></p>
+            <div>
+                <label for="telefon">Telefon</label>
+                <input id="telefon">
+            </div>
 
-<br>
+            <p id="msg" class="alert hidden"></p>
 
-<a href="/user-panel.html">
-    Powrót do panelu
-</a>
+            <div class="actions">
+                <button type="submit" class="btn">Zapisz zmiany</button>
+                <a href="/user-panel.html" class="btn btn-outline">Powrót do panelu</a>
+            </div>
+        </form>
+    </section>
+</main>
 
-<script>
-
-    const userId =
-        localStorage.getItem("userId");
-
-    if (!userId) {
-        window.location.href =
-            "/login.html";
-    }
-
-    async function pobierzProfil() {
-
-        const response =
-            await fetch("/uzytkownik/" + userId);
-
-        const user =
-            await response.json();
-
-        document.getElementById("imie").value =
-            user.imie ?? "";
-
-        document.getElementById("nazwisko").value =
-            user.nazwisko ?? "";
-
-        document.getElementById("email").value =
-            user.email ?? "";
-
-        document.getElementById("telefon").value =
-            user.telefon ?? "";
-    }
-
-    async function zapisz(event) {
-
-        event.preventDefault();
-
-        const data = {
-            email:
-                document.getElementById("email").value,
-
-            telefon:
-                document.getElementById("telefon").value
-        };
-
-        const response =
-            await fetch(
-                "/uzytkownik/" + userId + "/kontakt",
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-                    body: JSON.stringify(data)
-                }
-            );
-
-        if (response.ok) {
-            document.getElementById("msg")
-                .innerText =
-                "Profil zapisany";
-        } else {
-            document.getElementById("msg")
-                .innerText =
-                "Błąd zapisu";
-        }
-    }
-
-    pobierzProfil();
-
-</script>
+<footer class="footer">
+    © 2026 Aplikacja Wydziału Komunikacji
+</footer>
 
 </body>
 </html>
