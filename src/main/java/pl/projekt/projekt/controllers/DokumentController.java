@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.*;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -29,8 +30,18 @@ public class DokumentController {
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
-    public DokumentController(DokumentRepo dokumentRepo,
-                              WniosekRepo wniosekRepo) {
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+    private static final Set<String> DOZWOLONE_TYPY = Set.of(
+            "application/pdf",
+            "image/jpeg",
+            "image/png"
+    );
+
+    public DokumentController(
+            DokumentRepo dokumentRepo,
+            WniosekRepo wniosekRepo
+    ) {
         this.dokumentRepo = dokumentRepo;
         this.wniosekRepo = wniosekRepo;
     }
@@ -41,6 +52,7 @@ public class DokumentController {
             @RequestParam("files") MultipartFile[] files,
             @RequestParam("typy") String[] typy
     ) {
+
         WniosekEnt wniosek = wniosekRepo.findById(wniosekId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
@@ -54,41 +66,91 @@ public class DokumentController {
             );
         }
 
+        if (typy == null || typy.length == 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Brak typów dokumentów"
+            );
+        }
+
         try {
-            Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
+            Path uploadPath = Paths.get(uploadDir)
+                    .toAbsolutePath()
+                    .normalize();
+
             Files.createDirectories(uploadPath);
 
             for (int i = 0; i < files.length; i++) {
+
                 MultipartFile file = files[i];
 
-                if (file.isEmpty()) {
+                if (file == null || file.isEmpty()) {
                     continue;
                 }
 
-                String typDokumentu = i < typy.length ? typy[i] : "INNY";
+                // rozmiar pliku
+                if (file.getSize() > MAX_FILE_SIZE) {
+                    throw new ResponseStatusException(
+                            HttpStatus.BAD_REQUEST,
+                            "Plik "
+                                    + file.getOriginalFilename()
+                                    + " przekracza limit 10 MB"
+                    );
+                }
 
-                String originalName = file.getOriginalFilename() != null
-                        ? file.getOriginalFilename()
-                        : "plik";
+                // typ MIME
+                String contentType = file.getContentType();
 
-                String safeName = originalName.replaceAll("[^a-zA-Z0-9._-]", "_");
-                String storedName = UUID.randomUUID() + "_" + safeName;
+                if (contentType == null
+                        || !DOZWOLONE_TYPY.contains(contentType)) {
 
-                Path target = uploadPath.resolve(storedName);
+                    throw new ResponseStatusException(
+                            HttpStatus.BAD_REQUEST,
+                            "Dozwolone są tylko pliki PDF, JPG oraz PNG"
+                    );
+                }
 
-                Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+                String typDokumentu =
+                        i < typy.length
+                                ? typy[i]
+                                : "INNY";
 
-                DokumentEnt dokument = new DokumentEnt();
+                String originalName =
+                        file.getOriginalFilename() != null
+                                ? file.getOriginalFilename()
+                                : "plik";
+
+                // bezpieczna nazwa pliku
+                String safeName = originalName
+                        .replaceAll("[^a-zA-Z0-9._-]", "_");
+
+                String storedName =
+                        UUID.randomUUID() + "_" + safeName;
+
+                Path target =
+                        uploadPath.resolve(storedName);
+
+                Files.copy(
+                        file.getInputStream(),
+                        target,
+                        StandardCopyOption.REPLACE_EXISTING
+                );
+
+                DokumentEnt dokument =
+                        new DokumentEnt();
+
                 dokument.setWniosek(wniosek);
                 dokument.setTypDokumentu(typDokumentu);
                 dokument.setNazwaPliku(originalName);
                 dokument.setSciezkaPliku(target.toString());
-                dokument.setContentType(file.getContentType());
+                dokument.setContentType(contentType);
 
                 dokumentRepo.save(dokument);
             }
 
-            return ResponseEntity.ok(dokumentRepo.findByWniosekId(wniosekId));
+            return ResponseEntity.ok(
+                    dokumentRepo.findByWniosekId(wniosekId)
+            );
 
         } catch (IOException e) {
             throw new ResponseStatusException(
@@ -103,11 +165,16 @@ public class DokumentController {
     public ResponseEntity<List<DokumentEnt>> getDokumentyWniosku(
             @PathVariable Long wniosekId
     ) {
-        return ResponseEntity.ok(dokumentRepo.findByWniosekId(wniosekId));
+        return ResponseEntity.ok(
+                dokumentRepo.findByWniosekId(wniosekId)
+        );
     }
 
     @GetMapping("/{id}/download")
-    public ResponseEntity<Resource> pobierzDokument(@PathVariable Long id) {
+    public ResponseEntity<Resource> pobierzDokument(
+            @PathVariable Long id
+    ) {
+
         DokumentEnt dokument = dokumentRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
@@ -115,8 +182,12 @@ public class DokumentController {
                 ));
 
         try {
-            Path path = Paths.get(dokument.getSciezkaPliku()).toAbsolutePath().normalize();
-            Resource resource = new UrlResource(path.toUri());
+            Path path = Paths.get(
+                    dokument.getSciezkaPliku()
+            ).toAbsolutePath().normalize();
+
+            Resource resource =
+                    new UrlResource(path.toUri());
 
             if (!resource.exists()) {
                 throw new ResponseStatusException(
@@ -125,15 +196,20 @@ public class DokumentController {
                 );
             }
 
-            String contentType = dokument.getContentType() != null
-                    ? dokument.getContentType()
-                    : "application/octet-stream";
+            String contentType =
+                    dokument.getContentType() != null
+                            ? dokument.getContentType()
+                            : "application/octet-stream";
 
             return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
+                    .contentType(
+                            MediaType.parseMediaType(contentType)
+                    )
                     .header(
                             HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"" + dokument.getNazwaPliku() + "\""
+                            "attachment; filename=\""
+                                    + dokument.getNazwaPliku()
+                                    + "\""
                     )
                     .body(resource);
 
