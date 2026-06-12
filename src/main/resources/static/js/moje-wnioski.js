@@ -53,7 +53,7 @@ async function pobierzWnioski() {
                     : ""
                 }
             </td>
-            <td>${w.dataZlozenia ?? "-"}</td>
+            <td>${formatujDate(w.dataZlozenia)}</td>
             <td>${w.opis ?? ""}</td>
             <td>${w.komentarzUrzednika ? w.komentarzUrzednika : "-"}</td>
             <td>
@@ -96,5 +96,21 @@ function polaczWebSocket() {
 
             pobierzWnioski();
         });
+    });
+}
+
+function formatujDate(data) {
+    if (!data) {
+        return "-";
+    }
+
+    const date = new Date(data);
+
+    return date.toLocaleString("pl-PL", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
     });
 }
